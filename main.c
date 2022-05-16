@@ -325,7 +325,7 @@ int main(int argc, char* argv[])
     {
         //(*((double*)hmDataBuffers[3]+(hmTimeIndex))) = RADIUS() * 1000.0; // m
     	// Radius is 0 in recent LP files. Temporary workaround:
-        (*((double*)hmDataBuffers[3]+(hmTimeIndex))) = (6371.0 + HEIGHT()) * 1000.0; // m
+        (*((double*)hmDataBuffers[3]+(hmTimeIndex))) = (6371.0 * 1000.0 + HEIGHT()); // m
     }
  
     // Number of records obtained for this date
