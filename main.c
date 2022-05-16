@@ -419,6 +419,35 @@ int main(int argc, char* argv[])
         goto cleanup;        
     }
 
+    // Archive the CDF and HDR files in a ZIP file
+    int sysStatus = system(NULL);
+    if (sysStatus == 0)
+    {
+        fprintf(stderr, "%sSystem shell call not available. Not archiving CDF.\n", infoHeader);
+        goto cleanup;
+    }
+    sysStatus = system("zip -q 1 > /dev/null");
+    if (WIFEXITED(sysStatus) && WEXITSTATUS(sysStatus) == 12)
+    {
+        char command[5*FILENAME_MAX + 100];
+        sprintf(command, "zip -Z store -q -r -j %s.ZIP %s.HDR %s.cdf && rm %s.HDR %s.cdf", slidemFilename, slidemFilename, slidemFilename, slidemFilename, slidemFilename);
+        sysStatus = system(command);
+        if (WIFEXITED(sysStatus) && (WEXITSTATUS(sysStatus) == 0))
+        {
+            fprintf(stdout, "%sStored HDR and CDF files in %s.ZIP\n", infoHeader, slidemFilename);
+        }
+        else
+        {
+            fprintf(stderr, "%sFailed to archive HDR and CDF files.\n", infoHeader);
+        }
+    }
+    else
+    {
+        fprintf(stderr, "zip is unusable. Not archiving CDF.\n");
+    }
+
+
+
 cleanup:
     fflush(stdout);
 

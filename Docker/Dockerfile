@@ -17,6 +17,7 @@ RUN apt -y install gdb
 RUN apt -y install cgdb
 RUN apt -y install vim
 RUN apt -y install pkg-config
+RUN apt -y install zip
 RUN apt -y install unzip
 RUN addgroup science
 RUN useradd -G science dataflow
