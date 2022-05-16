@@ -34,16 +34,19 @@ endif(CMAKE_BUILD_TYPE STREQUAL Debug)
 # GSL
 FIND_PACKAGE(GSL REQUIRED)
 
+# LIBXML2
+FIND_PACKAGE(LibXml2)
+
 # requires -lm on linux
 FIND_LIBRARY(MATH m)
 
-SET(LIBS ${LIBS} ${MATH} ${GSL_LIBRARY} )
+SET(LIBS ${LIBS} ${MATH} ${GSL_LIBRARY} ${LIBXM2_LIBRARIES})
 
-INCLUDE_DIRECTORIES(${INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${ZIP_INCLUDE_DIRS} ${HOME}/include)
+INCLUDE_DIRECTORIES(${INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${ZIP_INCLUDE_DIRS} ${HOME}/include ${LIBXML2_INCLUDE_DIR})
 
-ADD_EXECUTABLE(slidem main.c cdf_vars.c cdf_attrs.c load_inputs.c downsample.c interpolate.c modified_oml.c calculate_products.c export_products.c utilities.c post_process_ion_drift.c ioncomposition.c calion.c iri2016util.c f107.c load_satellite_velocity.c calculate_diplatitude.c)
+ADD_EXECUTABLE(slidem main.c cdf_vars.c cdf_attrs.c load_inputs.c downsample.c interpolate.c modified_oml.c calculate_products.c export_products.c utilities.c post_process_ion_drift.c ioncomposition.c calion.c iri2016util.c f107.c load_satellite_velocity.c calculate_diplatitude.c write_header.c)
 TARGET_INCLUDE_DIRECTORIES(slidem PRIVATE ${HOME}/include)
-TARGET_LINK_LIBRARIES(slidem ${LIBS} -lgslcblas -lgsl -lcdf)
+TARGET_LINK_LIBRARIES(slidem ${LIBS} -lgslcblas -lgsl -lcdf -lxml2)
 
 install(TARGETS slidem DESTINATION $ENV{HOME}/bin)
 

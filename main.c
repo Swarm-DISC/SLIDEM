@@ -48,6 +48,7 @@
 #include "calculate_products.h"
 #include "post_process_ion_drift.h"
 #include "export_products.h"
+#include "write_header.h"
 
 #include "f107.h"
 #include "load_satellite_velocity.h"
@@ -404,9 +405,19 @@ int main(int argc, char* argv[])
         goto cleanup;
     }
 
-    // Write Metainfo file for L2 packaging
+    // Write Header file for L2 archiving
     time_t processingStopTime = time(NULL);
-    exportSlidemMetainfo(slidemFilename, fpFilename, hmFilename, magFilename, modFilename, modFilenamePrevious, nVnecRecsPrev, processingStartTime, processingStopTime);
+    long hmTimeIndex = 0;
+    double firstMeasurementTime = HMTIME();
+    hmTimeIndex = nHmRecs-1;
+    double lastMeasurementTime = HMTIME();
+    status = writeSlidemHeader(slidemFilename, fpFilename, hmFilename, modFilename, modFilenamePrevious, magFilename, processingStartTime, firstMeasurementTime, lastMeasurementTime, nVnecRecsPrev);
+
+    if (status != HEADER_OK)
+    {
+        fprintf(stdout, "%sError writing HDR file.\n", infoHeader);
+        goto cleanup;        
+    }
 
 cleanup:
     fflush(stdout);

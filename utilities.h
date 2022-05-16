@@ -23,6 +23,7 @@
 
 #include <stdint.h>
 
+#include <time.h>
 #include <cdf.h>
 
 
@@ -42,6 +43,12 @@ void freeMemory(uint8_t **fpDataBuffers, uint8_t **hmDataBuffers, uint8_t **vnec
 int getInputFilename(const char satelliteLetter, long year, long month, long day, const char *path, const char *dataset, char *filename);
 
 int dayOfYear(long year, long month, long day, int* yday);
+
+void utcDateString(time_t seconds, char *dateString);
+
+void utcDateStringWithMicroseconds(double seconds, char *dateString);
+
+void utcNowDateString(char *dateString);
 
 enum UTIL_ERRORS {
     UTIL_NO_ERROR = 0,

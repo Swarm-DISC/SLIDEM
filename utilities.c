@@ -21,6 +21,7 @@
 // Adapted from the Swarm Thermal Ion Imager Cross-track Ion Drift processor source code
 
 #include "utilities.h"
+#include "slidem_settings.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,8 +30,7 @@
 #include <stdbool.h>
 
 #include <fts.h>
-
-#include "slidem_settings.h"
+#include <math.h>
 
 
 // Prefix for all fprintf messages
@@ -227,3 +227,30 @@ int dayOfYear(long year, long month, long day, int* yday)
     return UTIL_NO_ERROR;
 }
 
+void utcDateString(time_t seconds, char *dateString)
+{
+    struct tm *d = gmtime(&seconds);
+    sprintf(dateString, "UTC=%04d-%02d-%02dT%02d:%02d:%02d", d->tm_year + 1900, d->tm_mon + 1, d->tm_mday, d->tm_hour, d->tm_min, d->tm_sec);
+
+    return;
+}
+
+void utcNowDateString(char *dateString)
+{
+    time_t seconds = time(NULL);
+    struct tm *d = gmtime(&seconds);
+    sprintf(dateString, "UTC=%04d-%02d-%02dT%02d:%02d:%02d", d->tm_year + 1900, d->tm_mon + 1, d->tm_mday, d->tm_hour, d->tm_min, d->tm_sec);
+
+    return;
+}
+
+void utcDateStringWithMicroseconds(double exactSeconds, char *dateString)
+{
+    time_t seconds = (time_t) floor(exactSeconds);
+    int microseconds = (int) floor(1000000.0 * (exactSeconds - (double) seconds));
+    struct tm *d = gmtime(&seconds);
+    sprintf(dateString, "UTC=%04d-%02d-%02dT%02d:%02d:%02d.%06d", d->tm_year + 1900, d->tm_mon + 1, d->tm_mday, d->tm_hour, d->tm_min, d->tm_sec, microseconds);
+
+    return;
+
+}

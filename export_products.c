@@ -58,7 +58,7 @@ CDFstatus exportProducts(const char *slidemFilename, char satellite, double begi
     double minutesExported = (endTime - beginTime)/1000./60.;
 
     // report
-    fprintf(stdout, "%sExported ~%.0f orbits (%ld 2 Hz records) of SLIDEM IDM data. %.1f%% coverage.\n", infoHeader, minutesExported/94., nHmRecs, minutesExported/1440.0*100.0); 
+    fprintf(stdout, "%sExported ~%.0f orbits (%ld 2 Hz records) of SLIDEM IDM data. %.1f%% coverage.\n", infoHeader, minutesExported/94., nHmRecs, minutesExported/1440.0*100.0);
 
     return status;
 }
@@ -136,68 +136,4 @@ cleanup:
     closeCdf(exportCdfId);
     return status;
 
-}
-
-void exportSlidemMetainfo(const char *slidemFilename, const char *fpFilename, const char *hmFilename, const char *magFilename, const char *modFilename, const char *modFilenamePrevious, long nVnecRecsPrev, time_t startTime, time_t stopTime)
-{
-    // Level 2 product ZIP file neads a HDR file, which is constructed from a metainfo file.
-    char metaInfoFilename[FILENAME_MAX];
-    sprintf(metaInfoFilename, "%s.metainfo", slidemFilename);
-    FILE *metaInfoFile = fopen(metaInfoFilename, "w");    
-    if (metaInfoFile == NULL)
-    {
-        fprintf(stdout, "%sError opening metainfo file for writing.\n", infoHeader);
-        return;
-    }
-
-    fprintf(metaInfoFile, "Type:%s\n", SLIDEM_PRODUCT_TYPE);
-    fprintf(metaInfoFile, "ProcessingCenter:UOC\n");
-    fprintf(metaInfoFile, "Processor:UOC_SLIDEM\n");
-    fprintf(metaInfoFile, "ProcessorVersion:%s\n", SOFTWARE_VERSION);
-    fprintf(metaInfoFile, "ProductError:0\n");
-
-    size_t fpLen = strlen(fpFilename);
-    fprintf(metaInfoFile, "Input:%s\n", fpFilename + fpLen - 59);
-    
-    size_t hmLen = strlen(hmFilename);
-    fprintf(metaInfoFile, "Input:%s\n", hmFilename + hmLen - 59);
-
-    size_t vnecLen;
-    if (nVnecRecsPrev > 0)
-    {
-        // used previous day MOD file to get coverage at beginning of processed day because
-        // the MOD files have an offset of some seconds
-        vnecLen = strlen(modFilenamePrevious);
-        fprintf(metaInfoFile, "Input:%s\n", modFilenamePrevious + vnecLen - 59);
-    }
-    vnecLen = strlen(modFilename);
-    fprintf(metaInfoFile, "Input:%s\n", modFilename + vnecLen - 59);
-
-    // MAG CDF file
-    vnecLen = strlen(magFilename);
-    fprintf(metaInfoFile, "Input:%s\n", magFilename + vnecLen - 70);
-
-    // F10.7
-    fprintf(metaInfoFile, "Input:%s\n", "apf107.dat");
-
-    // modified OML file
-    fprintf(metaInfoFile, "Input:%s\n", ".slidem_modified_oml_configrc");
-
-    char start[20] = {0};
-    struct tm * tstart = gmtime(&startTime);
-    sprintf(start, "%4d-%02d-%02dT%02d:%02d:%02d", tstart->tm_year+1900, tstart->tm_mon+1, tstart->tm_mday, tstart->tm_hour, tstart->tm_min, tstart->tm_sec);
-    fprintf(metaInfoFile, "ProcessStart:%s\n", start);
-    
-    char stop[20] = {0};
-    struct tm * tstop = gmtime(&stopTime);
-    sprintf(stop, "%4d-%02d-%02dT%02d:%02d:%02d", tstop->tm_year+1900, tstop->tm_mon+1, tstop->tm_mday, tstop->tm_hour, tstop->tm_min, tstop->tm_sec);
-    fprintf(metaInfoFile, "ProcessStop:%s\n", stop);
-
-    size_t sLen = strlen(slidemFilename);
-    fprintf(metaInfoFile, "Output:%s.cdf\n", slidemFilename + sLen - 55);
-
-    fclose(metaInfoFile);
-    fprintf(stdout, "%sMetainfo file: %s\n", infoHeader, metaInfoFilename);
-
-    return;
 }
