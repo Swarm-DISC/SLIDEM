@@ -225,7 +225,7 @@ void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fp
             }
             else
             {
-                ni = MISSING_NI_VALUE;
+                ni = MISSING_NI_VALUE * 1e6;
                 niFlag |= SLIDEM_FLAG_PRODUCT_ESTIMATE_NOT_FINITE;
             }
             if (!isfinite(niError))
@@ -336,7 +336,7 @@ void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fp
             alongtrackiondrift = MISSING_VI_VALUE;
             vionsError = MISSING_ERROR_ESTIMATE_VALUE;
             viFlag |= SLIDEM_FLAG_NO_FACEPLATE_CURRENT;
-            ni = MISSING_NI_VALUE;
+            ni = MISSING_NI_VALUE * 1e6;
             niError = MISSING_ERROR_ESTIMATE_VALUE;
             niFlag |= SLIDEM_FLAG_NO_FACEPLATE_CURRENT;
             fpArea = MISSING_FPAREA_VALUE;
