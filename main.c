@@ -67,10 +67,19 @@ int main(int argc, char* argv[])
     time_t processingStartTime = time(NULL);
 
     fprintf(stdout, "SLIDEM Swarm Langmuir Probe Ion Drift, Density and Effective Mass processor.\n");
-    fprintf(stdout, "Copyright (C) 2022  Johnathan K Burchill\n");
-    fprintf(stdout, "This program comes with ABSOLUTELY NO WARRANTY.\n");
-    fprintf(stdout, "This is free software, and you are welcome to redistribute it\n");
-    fprintf(stdout, "under the terms of the GNU General Public License.\n");
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "--about") == 0)
+        {
+            fprintf(stdout, "SLIDEM Swarm Langmuir Probe Ion Drift, Density and Effective Mass processor, version %s.\n", SOFTWARE_VERSION);
+            fprintf(stdout, "Copyright (C) 2022  Johnathan K Burchill\n");
+            fprintf(stdout, "This program comes with ABSOLUTELY NO WARRANTY.\n");
+            fprintf(stdout, "This is free software, and you are welcome to redistribute it\n");
+            fprintf(stdout, "under the terms of the GNU General Public License.\n");
+            exit(0);
+        }
+    }
 
     if (argc != 7)
     {
@@ -80,7 +89,8 @@ int main(int argc, char* argv[])
             fprintf(stdout, "%s ", argv[i]);
         }
         fprintf(stdout, "\"\n");
-        fprintf(stdout, "usage: slidem satellite yyyymmdd lpDirectory modDirectory magDirectory exportDirectory\n");
+        fprintf(stdout, "usage:\tslidem satellite yyyymmdd lpDirectory modDirectory magDirectory exportDirectory\n\t\tprocesses Swarm LP data to generate SLIDEM product for specified satellite and date.\n");
+        fprintf(stdout, "\tslidem --about\n\t\tprints version and license information.\n");
         exit(1);
     }
 
