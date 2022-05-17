@@ -24,8 +24,6 @@
 
 #include <time.h>
 
-#define UTC_DATE_LENGTH 24
-
 enum HEADER_STATUS
 {
     HEADER_OK = 0,

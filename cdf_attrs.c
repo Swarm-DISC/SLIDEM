@@ -207,30 +207,49 @@ CDFstatus addVariableAttributes(CDFid id, varAttr attr)
     return status;
 }
 
-void addAttributes(CDFid id, const char *softwareVersion, const char satellite, const char *version, double minTime, double maxTime)
+void addAttributes(CDFid id, const char *softwareVersion, const char satellite, const char *version, double minTime, double maxTime, const char *slidemFilename, const char *fpFilename, const char *hmFilename, const char *modFilename, const char *modFilenamePrevious, const char *magFilename, long nVnecRecsPrev)
 {
     long attrNum;
     char buf[1000];
 
     // Global attributes
-    CDFcreateAttr(id, "File_naming_convention", GLOBAL_SCOPE, &attrNum);
-    sprintf(buf, "SW_%s_EFIXIDM", SLIDEM_PRODUCT_TYPE);
+
+    CDFcreateAttr(id, "TITLE", GLOBAL_SCOPE, &attrNum);
+    sprintf(buf, "Swarm %c SLIDEM product", satellite);
     addgEntry(id, attrNum, 0, buf);
-    CDFcreateAttr(id, "Logical_file_id", GLOBAL_SCOPE, &attrNum);
-    sprintf(buf, "swarm%c_IDM_H0__v%s", tolower(satellite), version);
-    addgEntry(id, attrNum, 0, buf);
-    CDFcreateAttr(id, "Logical_source", GLOBAL_SCOPE, &attrNum);
-    sprintf(buf, "Swarm%c_IDM_H0", satellite);
-    addgEntry(id, attrNum, 0, buf);
-    CDFcreateAttr(id, "Logical_source_description", GLOBAL_SCOPE, &attrNum);
-    sprintf(buf, "Swarm %c Ion Drift, Density and Effective Mass High resolution data product", satellite);
-    addgEntry(id, attrNum, 0, buf);
-    CDFcreateAttr(id, "Mission_group", GLOBAL_SCOPE, &attrNum);
-    addgEntry(id, attrNum, 0, "Swarm");
-    CDFcreateAttr(id, "MODS", GLOBAL_SCOPE, &attrNum);
-    addgEntry(id, attrNum, 0, "Initial release.");
+
+    CDFcreateAttr(id, "File_Name", GLOBAL_SCOPE, &attrNum);
+    addgEntry(id, attrNum, 0, slidemFilename + strlen(slidemFilename) - SLIDEM_BASE_FILENAME_LENGTH - 4);
+
+    CDFcreateAttr(id, "Creator", GLOBAL_SCOPE, &attrNum);
+    addgEntry(id, attrNum, 0, "University of Calgary, Alberta, Canada");
+
+    CDFcreateAttr(id, "Creator_Software", GLOBAL_SCOPE, &attrNum);
+    addgEntry(id, attrNum, 0, "slidem");
+
+    CDFcreateAttr(id, "Creator_Version", GLOBAL_SCOPE, &attrNum);
+    addgEntry(id, attrNum, 0, SOFTWARE_VERSION);
+
+    CDFcreateAttr(id, "Generation_date", GLOBAL_SCOPE, &attrNum);
+    char genDate[UTC_DATE_LENGTH];
+    utcNowDateString(genDate);
+    addgEntry(id, attrNum, 0, genDate);
+
+    CDFcreateAttr(id, "Input_files", GLOBAL_SCOPE, &attrNum);
+    int fileNo = 0;
+    addgEntry(id, attrNum, fileNo++, fpFilename + strlen(fpFilename) - FP_FILENAME_LENGTH);
+    addgEntry(id, attrNum, fileNo++, hmFilename + strlen(hmFilename) - HM_FILENAME_LENGTH);
+    if (nVnecRecsPrev > 0)
+        addgEntry(id, attrNum, fileNo++, modFilenamePrevious + strlen(modFilenamePrevious) - MOD_FILENAME_LENGTH);
+    addgEntry(id, attrNum, fileNo++, modFilename + strlen(modFilename) - MOD_FILENAME_LENGTH);
+    addgEntry(id, attrNum, fileNo++, magFilename + strlen(magFilename) - MAG_FILENAME_LENGTH);
+    addgEntry(id, attrNum, fileNo++, "apf107.dat");
+    addgEntry(id, attrNum, fileNo++, ".slidem_modified_oml_configrc");
+
     CDFcreateAttr(id, "PI_name", GLOBAL_SCOPE, &attrNum);
     addgEntry(id, attrNum, 0, "Johnathan Burchill");   
+    CDFcreateAttr(id, "Project_scientist", GLOBAL_SCOPE, &attrNum);
+    addgEntry(id, attrNum, 0, "Ivan Pakhotin");   
     CDFcreateAttr(id, "PI_affiliation", GLOBAL_SCOPE, &attrNum);
     addgEntry(id, attrNum, 0, "University of Calgary");
     CDFcreateAttr(id, "Acknowledgement", GLOBAL_SCOPE, &attrNum);
@@ -249,6 +268,24 @@ void addAttributes(CDFid id, const char *softwareVersion, const char satellite, 
     CDFcreateAttr(id, "Generated_by", GLOBAL_SCOPE, &attrNum);
     addgEntry(id, attrNum, 0, "University of Calgary");
     CDFcreateAttr(id, "Generation_date", GLOBAL_SCOPE, &attrNum);
+
+    CDFcreateAttr(id, "File_naming_convention", GLOBAL_SCOPE, &attrNum);
+    sprintf(buf, "SW_%s_EFIXIDM", SLIDEM_PRODUCT_TYPE);
+    addgEntry(id, attrNum, 0, buf);
+    CDFcreateAttr(id, "Logical_file_id", GLOBAL_SCOPE, &attrNum);
+    sprintf(buf, "swarm%c_IDM_H0__v%s", tolower(satellite), version);
+    addgEntry(id, attrNum, 0, buf);
+    CDFcreateAttr(id, "Logical_source", GLOBAL_SCOPE, &attrNum);
+    sprintf(buf, "Swarm%c_IDM_H0", satellite);
+    addgEntry(id, attrNum, 0, buf);
+    CDFcreateAttr(id, "Logical_source_description", GLOBAL_SCOPE, &attrNum);
+    sprintf(buf, "Swarm %c Ion Drift, Density and Effective Mass High resolution data product", satellite);
+    addgEntry(id, attrNum, 0, buf);
+    CDFcreateAttr(id, "Mission_group", GLOBAL_SCOPE, &attrNum);
+    addgEntry(id, attrNum, 0, "Swarm");
+    CDFcreateAttr(id, "MODS", GLOBAL_SCOPE, &attrNum);
+    addgEntry(id, attrNum, 0, "Initial release.");
+
     // Get rid of trailing newline from creation date
     time_t created;
     time(&created);
@@ -346,7 +383,7 @@ void addAttributes(CDFid id, const char *softwareVersion, const char satellite, 
         {"Timestamp", "CDF_EPOCH", "*", "UT", minTime, maxTime, "%f"},
         {"Latitude", "CDF_REAL8", "degrees", "Geodetic latitude.", -90., 90., "%5.1f"},
         {"Longitude", "CDF_REAL8", "degrees", "Geodetic longitude.", -180., 180., "%6.1f"},
-        {"Radius", "CDF_REAL8", "m", "Geocentric radius.", 6400000., 7400000., "%8.1f"},
+        {"Radius", "CDF_REAL8", "m", "Geocentric radius.", 6400000., 7400000., "%9.1f"},
         {"Height", "CDF_REAL8", "m", "Height above WGS84 reference ellipsoid.", 0., 1000000.0, "%8.1f"},
         {"QDLatitude", "CDF_REAL8", "degrees", "Quasi-dipole magnetic latitude.", -90., 90., "%5.1f"},
         {"MLT", "CDF_REAL8", "hour", "Magnetic local time.", 0., 24., "%4.1f"},

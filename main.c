@@ -265,9 +265,14 @@ int main(int argc, char* argv[])
     long nHmRecs = 0;
     loadInputs(hmFilename, NUM_HMFILE_VARIABLES, hmVariables, NUM_HM_VARIABLES, hmDataBuffers, &nHmRecs);
     // Convert heights from km to m
+    // Ensure longitude is within the range -180 to +180
     for (long hmTimeIndex = 0; hmTimeIndex < nHmRecs; hmTimeIndex++)
     {
         ((double*)hmDataBuffers[4])[hmTimeIndex] = 1000. * HEIGHT();
+        if (LON() > 180.0)
+            ((double*)hmDataBuffers[2])[hmTimeIndex] = LON() - 360.0;
+        if (LON() < -180.0)
+            ((double*)hmDataBuffers[2])[hmTimeIndex] = LON() + 360.0;
     }
 
     // Magnetic field for dip latitude calculation
@@ -397,7 +402,7 @@ int main(int argc, char* argv[])
     }
 
     // Write CDF file
-    status = exportProducts(slidemFilename, satellite, beginTime, endTime, hmDataBuffers, nHmRecs, vn, ve, vc, ionEffectiveMass, ionDensity, ionDriftRaw, ionDrift, ionEffectiveMassError, ionDensityError, ionDriftError, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, ionEffectiveMassTTS, mieffFlags, viFlags, niFlags);
+    status = exportProducts(slidemFilename, satellite, beginTime, endTime, hmDataBuffers, nHmRecs, vn, ve, vc, ionEffectiveMass, ionDensity, ionDriftRaw, ionDrift, ionEffectiveMassError, ionDensityError, ionDriftError, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, ionEffectiveMassTTS, mieffFlags, viFlags, niFlags, fpFilename, hmFilename, modFilename, modFilenamePrevious, magFilename, nVnecRecsPrev);
 
     if (status != CDF_OK)
     {

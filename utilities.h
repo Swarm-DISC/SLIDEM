@@ -26,6 +26,7 @@
 #include <time.h>
 #include <cdf.h>
 
+#define UTC_DATE_LENGTH 24
 
 // Constructs a full path to the export CDF file in the argument constructExportFileName.
 int constructExportFileName(const char satellite, long year, long month, long day, const char *exportDir, double *beginTime, double *endTime, char *cdfFileName);

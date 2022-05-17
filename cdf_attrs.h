@@ -39,7 +39,7 @@ typedef struct varAttr {
 
 CDFstatus addVariableAttributes(CDFid id, varAttr attr);
 
-void addAttributes(CDFid id, const char *calVersion, const char satellite, const char *version, double minTime, double maxTime);
+void addAttributes(CDFid id, const char *softwareVersion, const char satellite, const char *version, double minTime, double maxTime, const char *slidemFilename, const char *fpFilename, const char *hmFilename, const char *modFilename, const char *modFilenamePrevious, const char *magFilename, long nVnecRecsPrev);
 
 
 #endif // CDF_ATTRS_H

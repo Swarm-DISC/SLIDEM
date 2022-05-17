@@ -40,7 +40,7 @@
 
 extern char infoHeader[50];
 
-CDFstatus exportProducts(const char *slidemFilename, char satellite, double beginTime, double endTime, uint8_t **hmDataBuffers, long nHmRecs, double *vn, double *ve, double *vc, double *ionEffectiveMass, double *ionDensity, double *ionDriftRaw, double *ionDrift, double *ionEffectiveMassError, double *ionDensityError, double *ionDriftError, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, double *ionEffectiveMassTTS, uint32_t *mieffFlags, uint32_t *viFlags, uint32_t *niFlags)
+CDFstatus exportProducts(const char *slidemFilename, char satellite, double beginTime, double endTime, uint8_t **hmDataBuffers, long nHmRecs, double *vn, double *ve, double *vc, double *ionEffectiveMass, double *ionDensity, double *ionDriftRaw, double *ionDrift, double *ionEffectiveMassError, double *ionDensityError, double *ionDriftError, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, double *ionEffectiveMassTTS, uint32_t *mieffFlags, uint32_t *viFlags, uint32_t *niFlags, const char *fpFilename, const char *hmFilename, const char *modFilename, const char *modFilenamePrevious, const char *magFilename, long nVnecRecsPrev)
 {
     long hmTimeIndex = 0;
     beginTime = HMTIME();
@@ -49,7 +49,7 @@ CDFstatus exportProducts(const char *slidemFilename, char satellite, double begi
 
     CDFstatus status = CDF_OK;
 
-    status = exportSlidemCdf(slidemFilename, satellite, EXPORT_VERSION_STRING, hmDataBuffers, nHmRecs, vn, ve, vc, ionEffectiveMass, ionDensity, ionDriftRaw, ionDrift, ionEffectiveMassError, ionDensityError, ionDriftError, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, ionEffectiveMassTTS, mieffFlags, viFlags, niFlags);
+    status = exportSlidemCdf(slidemFilename, satellite, EXPORT_VERSION_STRING, hmDataBuffers, nHmRecs, vn, ve, vc, ionEffectiveMass, ionDensity, ionDriftRaw, ionDrift, ionEffectiveMassError, ionDensityError, ionDriftError, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, ionEffectiveMassTTS, mieffFlags, viFlags, niFlags, fpFilename, hmFilename, modFilename, modFilenamePrevious, magFilename, nVnecRecsPrev);
     if (status != CDF_OK)
     {
         return status;
@@ -63,14 +63,14 @@ CDFstatus exportProducts(const char *slidemFilename, char satellite, double begi
     return status;
 }
 
-CDFstatus exportSlidemCdf(const char *cdfFilename, const char satellite, const char *exportVersion, uint8_t **hmDataBuffers, long nHmRecs, double *vn, double *ve, double *vc, double *ionEffectiveMass, double *ionDensity, double *ionDriftRaw, double *ionDrift, double *ionEffectiveMassError, double *ionDensityError, double *ionDriftError, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, double *ionEffectiveMassTTS, uint32_t *mieffFlags, uint32_t *viFlags, uint32_t *niFlags)
+CDFstatus exportSlidemCdf(const char *slidemFilename, const char satellite, const char *exportVersion, uint8_t **hmDataBuffers, long nHmRecs, double *vn, double *ve, double *vc, double *ionEffectiveMass, double *ionDensity, double *ionDriftRaw, double *ionDrift, double *ionEffectiveMassError, double *ionDensityError, double *ionDriftError, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, double *ionEffectiveMassTTS, uint32_t *mieffFlags, uint32_t *viFlags, uint32_t *niFlags, const char *fpFilename, const char *hmFilename, const char *modFilename, const char *modFilenamePrevious, const char *magFilename, long nVnecRecsPrev)
 {
 
-    fprintf(stdout, "%sExporting SLIDEM IDM data.\n",infoHeader);
+    fprintf(stdout, "%sExporting SLIDEM IDM data.\n", infoHeader);
 
     CDFid exportCdfId;
     CDFstatus status = CDF_OK;
-    status = CDFcreateCDF((char *)cdfFilename, &exportCdfId);
+    status = CDFcreateCDF((char *)slidemFilename, &exportCdfId);
     if (status != CDF_OK)
     {
         printErrorMessage(status);
@@ -124,7 +124,10 @@ CDFstatus exportSlidemCdf(const char *cdfFilename, const char satellite, const c
         hmTimeIndex = nHmRecs - 1;
         double maxTime = HMTIME();
 
-        addAttributes(exportCdfId, SOFTWARE_VERSION_STRING, satellite, exportVersion, minTime, maxTime);
+        char cdfFilename[FILENAME_MAX];
+        snprintf(cdfFilename, FILENAME_MAX - 4, "%s.cdf", slidemFilename); 
+
+        addAttributes(exportCdfId, SOFTWARE_VERSION_STRING, satellite, exportVersion, minTime, maxTime, cdfFilename, fpFilename, hmFilename, modFilename, modFilenamePrevious, magFilename, nVnecRecsPrev);
 
         fprintf(stdout, "%sExported %ld records to %s.cdf\n", infoHeader, nHmRecs, cdfFilename);
         fflush(stdout);
