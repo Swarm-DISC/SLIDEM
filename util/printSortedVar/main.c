@@ -1,3 +1,27 @@
+/*
+
+    SLIDEM Processor: util/printSortedVar/main.c
+
+    Copyright (C) 2022  Johnathan K Burchill
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// CDF reading code is derived from SLIDEM load_inputs.c
+
+#define SOFTWARE_VERSION "1.0"
+
 #include <stdio.h>
 
 #include <cdf.h>
@@ -155,11 +179,25 @@ void printValue(void *pointer, size_t index, long variableBytes)
 int main(int argc, char *argv[])
 {
 
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "--about") == 0)
+        {
+            fprintf(stdout, "printSortedVar version %s.\n", SOFTWARE_VERSION);
+            fprintf(stdout, "Copyright (C) 2022  Johnathan K Burchill\n");
+            fprintf(stdout, "This program comes with ABSOLUTELY NO WARRANTY.\n");
+            fprintf(stdout, "This is free software, and you are welcome to redistribute it\n");
+            fprintf(stdout, "under the terms of the GNU General Public License.\n");
+            exit(0);
+        }
+    }
+
 	if (argc <2 || argc > 4)
 	{
 		printf("usage:\t%s cdffile\n\t\tprints list of varibles in cdffile.\n", argv[0]);
 		printf("\t%s cdffile variable\n\t\tprints a sorted list (minimum to maximum) for the variable.\n", argv[0]);
 		printf("\t%s cdffile variable ignoredValue\n\t\tprints list of varibles in cdffile.\n", argv[0]);
+		printf("\t%s --about\n\t\tprints copyright and license information.\n", argv[0]);
 		exit(0);
 	}
 
