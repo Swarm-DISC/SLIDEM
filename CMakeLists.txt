@@ -52,3 +52,5 @@ install(TARGETS slidem DESTINATION $ENV{HOME}/bin)
 
 # SLIDEM config file
 install(FILES slidem_modified_oml_configrc DESTINATION $ENV{HOME} RENAME .slidem_modified_oml_configrc)
+
+add_subdirectory(util)
