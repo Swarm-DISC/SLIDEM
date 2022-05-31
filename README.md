@@ -4,7 +4,7 @@ This is the Swarm Langmuir probe Ion Drift, density and Effective Mass (SLIDEM) 
 
 The processor calculates from Swarm satellite Electric Field Instrument data the ionospheric ion drift (in the direction parallel to the satellite velocity), ion concentration, and effective ion mass.
 
-An overview of the method and results from a validation study are available in Pakhotin et al. (2022), The Swarm Langmuir Probe Ion Drift, Density and Effective Mass (SLIDEM) Product (submitted to Earth and Planetary Science).
+An overview of the method and results from a validation study are available in Pakhotin et al. (2022), The Swarm Langmuir Probe Ion Drift, Density and Effective Mass (SLIDEM) Product (submitted to Earth, Planets and Space).
 
 Details on the processing method and output file format are available from the [SLIDEM Product Definition](https://swarm-diss.eo.esa.int/?do=download&file=swarm%2FAdvanced%2FPlasma_Data%2F2_Hz_Ion_Drift_Density_and_Effective_Mass_dataset%2FSW-TN-UoC-GS-002_SLIDEM_Product_Definition.ZIP).
 
