@@ -1,0 +1,2 @@
+- Calculate effective ion mass after velocities have been post-processed, to remove discontinuities in mieff at QD latitudes of +-50 degrees.
+- Flag cases where the effective ion mass is replaced with the model value due to the calculated value being non-finite.
