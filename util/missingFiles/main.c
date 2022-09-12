@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	if (strcmp(dataset, "MOD") == 0)
 		dataset = "SC_1B";
 	else if (strcmp(dataset, "MAG") == 0)
-		dataset = "MAGLR";
+		dataset = "LR_1B";
 
 	printMissingInputFiles(satLetter[0], startDate, endDate, dataset);
 
