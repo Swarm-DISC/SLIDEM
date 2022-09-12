@@ -70,6 +70,11 @@ int main(int argc, char *argv[])
 	char *startDate = argv[3];
 	char *endDate = argv[4];
 
+	if (strcmp(dataset, "MOD") == 0)
+		dataset = "SC_1B";
+	else if (strcmp(dataset, "MAG") == 0)
+		dataset = "MAGLR";
+
 	printMissingInputFiles(satLetter[0], startDate, endDate, dataset);
 
 	return 0;
@@ -136,7 +141,7 @@ int printMissingInputFiles(const char satelliteLetter, char *startDate, char *en
 	for (int i = 0; i < days; i++)
 	{
 		if (strlen(dates[i]) > 0)
-			printf("%s\n", dates[i]);		
+			printf("mget *%s*%sT*\n", dataset, dates[i]);		
 	}
 
 	free(dates);
