@@ -1,4 +1,4 @@
-# SLIDEM Processor: util/CMakeLists.txt
+# SLIDEM Processor: util/missingFiles/CMakeLists.txt
 
 # Copyright (C) 2022  Johnathan K Burchill
 
@@ -15,6 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_subdirectory(printSortedVar)
-add_subdirectory(missingFiles)
+project(slidem)
 
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+
+ADD_EXECUTABLE(missingFiles main.c)
+TARGET_LINK_LIBRARIES(missingFiles)
+
+install(TARGETS missingFiles DESTINATION $ENV{HOME}/bin)
