@@ -138,6 +138,28 @@ int printMissingInputFiles(const char satelliteLetter, char *startDate, char *en
 
 	fts_close(fts);
 
+	// lftp commands...
+	if (strcmp(dataset, "SC_1B")==0)
+	{
+		printf("lcd /data/Swarm/EFI/Level1b/Treated\n");
+		printf("cd /Level1b/Latest_baselines/MODx_SC/Sat_%c\n", satelliteLetter);
+	}
+	else if (strcmp(dataset, "LR_1B")==0)
+	{
+		printf("lcd /efirepo/SLIDEM/LP/Sat_%c\n", satelliteLetter);
+		printf("cd /Level1b/Latest_baselines/MAGx_LR/Sat_%c\n", satelliteLetter);
+	}
+	else if (strcmp(dataset, "LP_FP")==0)
+	{
+		printf("lcd /efirepo/SLIDEM/LP/Sat_%c\n", satelliteLetter);
+		printf("cd /Advanced/Plasma_Data/16_Hz_Faceplate_plasma_density/Sat_%c\n", satelliteLetter);
+	}
+	else if (strcmp(dataset, "LP_HM")==0)
+	{
+		printf("lcd /efirepo/SLIDEM/LP/Sat_%c\n", satelliteLetter);
+		printf("cd /Advanced/Plasma_Data/2_Hz_Langmuir_Probe_Extended_Dataset/Sat_%c\n", satelliteLetter);
+	}
+
 	for (int i = 0; i < days; i++)
 	{
 		if (strlen(dates[i]) > 0)
