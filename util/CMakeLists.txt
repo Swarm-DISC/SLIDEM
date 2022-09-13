@@ -17,4 +17,5 @@
 
 add_subdirectory(printSortedVar)
 add_subdirectory(missingFiles)
-
+# add_subdirectory(repairCDF)
+add_subdirectory(slidemParallel)
