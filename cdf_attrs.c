@@ -351,7 +351,7 @@ void addAttributes(CDFid id, const char *softwareVersion, const char satellite, 
 65536  Post processing error / post-processing not done\n\
 131072 Magnetic field input invalid.");
 
-    addgEntry(id, attrNum, 6, "Pakhotin, Burchill, Foerster and Lomidze. Swarm Langmuir Probe Ion Drift, Density, and Effective Mass (IDM) product validation. Submitted to Earth, Planets, Space.");
+    addgEntry(id, attrNum, 6, "Pakhotin et al. (2022). The Swarm Langmuir Probe Ion Drift, Density and Effective Mass (SLIDEM) Product. Earth, Planets and Space 74.1, 1-18, doi.org/10.1186/s40623-022-01668-5.");
     addgEntry(id, attrNum, 7, "Knudsen, D.J., Burchill, J.K., Buchert, S.C., Eriksson, A.I., Gill, R., Wahlund, J.E., Ahlen, L., Smith, M. and Moffat, B., 2017. Thermal ion imagers and Langmuir probes in the Swarm electric field instruments. Journal of Geophysical Research: Space Physics, 122(2), pp.2655-2673.");
     CDFcreateAttr(id, "Time_resolution", GLOBAL_SCOPE, &attrNum);
     addgEntry(id, attrNum, 0, "0.5 seconds");
