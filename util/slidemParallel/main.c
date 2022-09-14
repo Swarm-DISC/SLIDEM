@@ -238,6 +238,7 @@ exit:
 	free(commandArgs);
 	endwin();
 	printf("Days processed: %d / %d\n", completed, days);
+	printf("Total time: %02d:%02d:%02d\n", hours, minutes, seconds);
 
 	return 0;
 
