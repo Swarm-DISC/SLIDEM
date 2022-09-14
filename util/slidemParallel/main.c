@@ -29,7 +29,8 @@
 #include <pthread.h>
 
 #include <time.h>
-#include <fts.h>
+#include <curses.h>
+
 
 #define SOFTWARE_VERSION "1.0"
 
@@ -60,27 +61,17 @@ typedef struct CommandArgs
 int dayCount(char *startDate, char *endDate);
 void incrementDate(char *date);
 
-void *runThread(void *a)
-{
-	CommandArgs* args = (CommandArgs *)a;
+static int rows = 0;
+static int cols = 0;
 
-	// exec slidem command 
-	int status = 0;
-	char command[5*FILENAME_MAX+256];
-	sprintf(command, "slidem %s %s %s %s %s %s > %s/%s%s.log", args->satLetter, args->date, args->lpDir, args->modDir, args->magDir, args->exportDir, args->exportDir, args->satLetter, args->date);
-	status = system(command);
-	if (WIFEXITED(status) && (WEXITSTATUS(status) == 0))
-	{
-		// Use mvprintw() from curses to have a scrolling log?
-	}
-	else
-	{
-		// mvprintw?
-	}
-	args->threadRunning = false;
-	args->returnValue = status;
-	pthread_exit(NULL);
-}
+#define SAT_ORIGIN 1,1
+#define START_DATE_ORIGIN 2,1
+#define END_DATE_ORIGIN 3,1
+#define PROCESSING_STATUS_ORIGIN 5,3
+
+void initScreen(void);
+
+void *runThread(void *a);
 
 int main(int argc, char *argv[])
 {
@@ -105,6 +96,10 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 
+
+	initScreen();
+	clear();
+
 	char *satelliteLetter = argv[1];
 	char *lpDir = argv[2];
 	char *modDir = argv[3];
@@ -115,7 +110,6 @@ int main(int argc, char *argv[])
 	int nThreads = atoi(argv[8]);
 	if (nThreads > MAX_THREADS)
 	{
-		fprintf(stderr, "Using the available %d threads.\n", MAX_THREADS);
 		nThreads = MAX_THREADS;
 	}
 
@@ -129,14 +123,11 @@ int main(int argc, char *argv[])
 	CommandArgs *commandArgs = calloc(nThreads, sizeof(CommandArgs));
 	if (commandArgs == NULL)
 	{
+		endwin();
 		printf("Could not calloc memory for thread arguments.\n");
 		exit(EXIT_FAILURE);
 	}
 
-
-
-	// Get number of threads minus 1
-	printf("Start date: %s\n", date);
 	// Loop and wait for threads
 
 	pthread_t threadIds[MAX_THREADS] = {0};
@@ -146,15 +137,18 @@ int main(int argc, char *argv[])
 	int status = pthread_attr_init(&attr);
 	if (status)
 	{
+		endwin();		
 		printf("Could not init pthread attributes.\n");
 		exit(EXIT_FAILURE);
 	}
 	int completed = 0;
 	int queued = 0;
 
-	printf("\n");
-	printf("\rSwarm %s: %d/%d processed (%4.1f)", satelliteLetter, completed, days, (float)completed / (float)days * 100.0);
-	fflush(stdout);
+	mvprintw(SAT_ORIGIN, "Swarm %s (%d threads)", satelliteLetter, nThreads);
+	mvprintw(START_DATE_ORIGIN, "Start: %s\n", startDate);
+	mvprintw(END_DATE_ORIGIN, "  End: %s\n", endDate);
+	mvprintw(PROCESSING_STATUS_ORIGIN, "%d/%d processed (%4.1f)", completed, days, (float)completed / (float)days * 100.0);
+	refresh();
 
 	while (completed < days)
 	{
@@ -170,7 +164,8 @@ int main(int argc, char *argv[])
 					{
 						completed++;
 						commandArgs[i].threadRunning = false;
-						printf("\rSwarm %s: %d/%d processed (%4.1f)", satelliteLetter, completed, days, (float)completed / (float)days * 100.0);
+						mvprintw(PROCESSING_STATUS_ORIGIN, "%d/%d processed (%4.1f)", completed, days, (float)completed / (float)days * 100.0);
+						clrtoeol();
 						fflush(stdout);
 						threadIds[i] = 0;
 					}
@@ -193,13 +188,15 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+		refresh();
 		usleep(THREAD_MANAGER_WAIT);
 	}
 
-	printf("\r\n");
 	status = pthread_attr_destroy(&attr);
 
 	free(commandArgs);
+
+	endwin();
 
 	return 0;
 
@@ -267,4 +264,37 @@ void incrementDate(char *date)
 
 	return;
 		
+}
+
+void initScreen(void)
+{
+	initscr();
+    getmaxyx(stdscr, rows, cols);
+    cbreak();
+    noecho();
+    nodelay(stdscr, TRUE);
+    keypad(stdscr, TRUE);
+    curs_set(0);
+}
+
+void *runThread(void *a)
+{
+	CommandArgs* args = (CommandArgs *)a;
+
+	// exec slidem command 
+	int status = 0;
+	char command[5*FILENAME_MAX+256];
+	sprintf(command, "slidem %s %s %s %s %s %s > %s/%s%s.log 2>&1", args->satLetter, args->date, args->lpDir, args->modDir, args->magDir, args->exportDir, args->exportDir, args->satLetter, args->date);
+	status = system(command);
+	if (WIFEXITED(status) && (WEXITSTATUS(status) == 0))
+	{
+		// Use mvprintw() from curses to have a scrolling log?
+	}
+	else
+	{
+		// mvprintw?
+	}
+	args->threadRunning = false;
+	args->returnValue = status;
+	pthread_exit(NULL);
 }
