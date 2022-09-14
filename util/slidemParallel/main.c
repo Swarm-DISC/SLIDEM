@@ -210,7 +210,6 @@ int main(int argc, char *argv[])
 		hours = t / 3600;
 		minutes = (t - 3600*hours) / 60;
 		seconds = t - 3600*hours - 60 * minutes;
-		mvprintw(PROCESSING_TIME_ORIGIN, "Total time: %02d:%02d:%02d", hours, minutes, seconds);
 
 		keyboard = getch();
 		if (keyboard != ERR)
@@ -224,7 +223,12 @@ int main(int argc, char *argv[])
 					break;
 			}
 		}
-
+		mvprintw(PROCESSING_TIME_ORIGIN, "Total time: %02d:%02d:%02d", hours, minutes, seconds);
+		clrtobot();
+		mvprintw(PROCESSING_STATUS_ORIGIN, "%d/%d processed (%4.1f%%)", completed, days, (float)completed / (float)days * 100.0);
+		clrtobot();
+		mvprintw(KEYBOARD_ORIGIN, "[q] - quit");
+		clrtobot();
 		refresh();
 		usleep(THREAD_MANAGER_WAIT);
 	}
