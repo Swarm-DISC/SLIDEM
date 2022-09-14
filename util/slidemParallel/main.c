@@ -64,10 +64,14 @@ void incrementDate(char *date);
 static int rows = 0;
 static int cols = 0;
 
+#define SLIDEM_LABEL 0, 0
 #define SAT_ORIGIN 1,1
 #define START_DATE_ORIGIN 2,1
 #define END_DATE_ORIGIN 3,1
-#define PROCESSING_STATUS_ORIGIN 5,3
+#define START_TIME_ORIGIN 5,1
+#define PROCESSING_TIME_ORIGIN 6, 1
+#define PROCESSING_STATUS_ORIGIN 8,3
+#define KEYBOARD_ORIGIN 10,2
 
 void initScreen(void);
 
@@ -144,11 +148,25 @@ int main(int argc, char *argv[])
 	int completed = 0;
 	int queued = 0;
 
+	time_t startTime = time(NULL);
+	time_t currentTime = 0;
+	struct tm *now = localtime(&startTime);
+	long t = 0;
+	int seconds = 0;
+	int minutes = 0;
+	int hours = 0;
+	mvprintw(SLIDEM_LABEL, "SLIDEM processor");
 	mvprintw(SAT_ORIGIN, "Swarm %s (%d threads)", satelliteLetter, nThreads);
-	mvprintw(START_DATE_ORIGIN, "Start: %s\n", startDate);
-	mvprintw(END_DATE_ORIGIN, "  End: %s\n", endDate);
-	mvprintw(PROCESSING_STATUS_ORIGIN, "%d/%d processed (%4.1f)", completed, days, (float)completed / (float)days * 100.0);
+	mvprintw(START_DATE_ORIGIN, "From: %s\n", startDate);
+	mvprintw(END_DATE_ORIGIN, "  To: %s\n", endDate);
+	mvprintw(START_TIME_ORIGIN, "Started: %4d%02d%02d %02d:%02d:%02d", now->tm_year+1900, now->tm_mon+1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
+	mvprintw(PROCESSING_TIME_ORIGIN, "Total time: %02d:%02d:%02d", 0, 0, 0);
+	mvprintw(PROCESSING_STATUS_ORIGIN, "%d/%d processed (%4.1f%%)", completed, days, (float)completed / (float)days * 100.0);
+
+	mvprintw(KEYBOARD_ORIGIN, "[q] - quit");
 	refresh();
+
+	int keyboard = 0;
 
 	while (completed < days)
 	{
@@ -164,9 +182,8 @@ int main(int argc, char *argv[])
 					{
 						completed++;
 						commandArgs[i].threadRunning = false;
-						mvprintw(PROCESSING_STATUS_ORIGIN, "%d/%d processed (%4.1f)", completed, days, (float)completed / (float)days * 100.0);
+						mvprintw(PROCESSING_STATUS_ORIGIN, "%d/%d processed (%4.1f%%)", completed, days, (float)completed / (float)days * 100.0);
 						clrtoeol();
-						fflush(stdout);
 						threadIds[i] = 0;
 					}
 				}
@@ -188,20 +205,39 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+		currentTime = time(NULL);
+		t = (long)currentTime - (long)startTime;
+		hours = t / 3600;
+		minutes = (t - 3600*hours) / 60;
+		seconds = t - 3600*hours - 60 * minutes;
+		mvprintw(PROCESSING_TIME_ORIGIN, "Total time: %02d:%02d:%02d", hours, minutes, seconds);
+
+		keyboard = getch();
+		if (keyboard != ERR)
+		{
+			switch (keyboard)
+			{
+				case 'q':
+					goto exit;
+					break;
+				default:
+					break;
+			}
+		}
+
 		refresh();
 		usleep(THREAD_MANAGER_WAIT);
 	}
 
+exit:
 	status = pthread_attr_destroy(&attr);
-
 	free(commandArgs);
-
 	endwin();
+	printf("Days processed: %d / %d\n", completed, days);
 
 	return 0;
 
 }
-
 
 int dayCount(char *startDate, char *endDate)
 {
