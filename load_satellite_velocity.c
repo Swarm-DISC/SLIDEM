@@ -72,7 +72,7 @@ int loadSatelliteVelocity(const char *modFilename, uint8_t **vnecDataBuffers, lo
     int a, b, c, d;
     double e;
 
-    itemsConverted = fscanf(modFP, "%7c %d %d %d %d %lf %ld %5c %5c %3c %4c\n", buf, &a, &b, &c, &d, &e, &epochs, buf, buf, buf, buf);
+    itemsConverted = fscanf(modFP, "%3c%d %d %d %d %d %lf %ld %5c %5c %3c %4c\n", buf, &year, &month, &day, &hour, &minute, &seconds, &epochs, buf, buf, buf, buf);
 
     if (epochs < MINIMUM_VELOCITY_EPOCHS)
     {
@@ -96,7 +96,13 @@ int loadSatelliteVelocity(const char *modFilename, uint8_t **vnecDataBuffers, lo
 
     long lines = 1;
 
-    // while((itemsConverted = fscanf(modFP, "%2c %d %d %d %d %d %lf\n", buf, &year, &month, &day, &hour, &minute, &seconds)) != EOF)
+    sec = (int)floor(seconds);
+    msec = (int)floor(1000.0 * (seconds - (double)sec));
+    double gpsEpoch = computeEPOCH(year, month, day, hour, minute, sec, msec);
+    double utEpoch = computeEPOCH(year, month, day, 0, 0, 0, 0);
+    double gpsTimeOffset = gpsEpoch - utEpoch;
+    double gpsTime = 0.0;
+
     while(fgets(buf, 100, modFP) != NULL)
     {
         lines++;
@@ -107,7 +113,8 @@ int loadSatelliteVelocity(const char *modFilename, uint8_t **vnecDataBuffers, lo
         sscanf(buf+2, "%d %d %d %d %d %lf", &year, &month, &day, &hour, &minute, &seconds);
         sec = (int) floor(seconds);
         msec = 1000 * (int)floor(seconds - (double)sec);
-        cdfTime = computeEPOCH(year, month, day, hour, minute, sec, msec);
+        gpsTime = computeEPOCH(year, month, day, hour, minute, sec, msec);
+        cdfTime = gpsTime - gpsTimeOffset;
         if(fgets(buf, 100, modFP) == NULL || buf[0] != 'P')
         {
             status = SAT_VEL_ERROR_FILE;
