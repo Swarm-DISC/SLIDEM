@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
 
     // Exit if SLIDEM CDF file exists.
     char slidemFullFilename[FILENAME_MAX];
-    sprintf(slidemFullFilename, "%s.cdf", slidemFilename);
+    sprintf(slidemFullFilename, "%s.ZIP", slidemFilename);
     if (access(slidemFullFilename, F_OK) == 0)
     {
         fprintf(stdout, "%sSLIDEM CDF file exists. Skipping this date.\n", infoHeader);
