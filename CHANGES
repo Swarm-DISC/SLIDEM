@@ -1,7 +1,7 @@
 17 May 2022, SLIDEM OPER 0101
     Initial release, based on University of Calgary Swarm EFI git repository SHA 14af6ceffc895e269bb4fb900468aebb6f55db90.
 
-Nov 2022 SLIDEM PREL 0102
+14 Sep 2022 SLIDEM PREL 0102
     Releasing as PREL instead of OPER.
     Updated CDF file attributes.
     Corrected radius variable calculation.
