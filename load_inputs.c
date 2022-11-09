@@ -31,8 +31,11 @@
 
 extern char infoHeader[50];
 
-void loadInputs(const char *cdfFile, int expectedNumberOfFileVariables, char *variables[], int nVariables, uint8_t **dataBuffers, long *numberOfRecords)
+void loadInputs(const char *cdfFile, char *variables[], int nVariables, uint8_t **dataBuffers, long *numberOfRecords)
 {
+    if (dataBuffers == NULL || numberOfRecords == NULL)
+        return;
+        
     // Open the CDF file with validation
     CDFsetValidate(VALIDATEFILEoff);
     CDFid cdfId;
@@ -70,12 +73,6 @@ void loadInputs(const char *cdfFile, int expectedNumberOfFileVariables, char *va
         return;
     }
     uint8_t nVars = numzVars;
-    if (nVars != expectedNumberOfFileVariables)
-    {
-        fprintf(stdout, "\n%s Error: number of calibration variables should be %d. Got %ld. Skipping this date.\n", infoHeader, (uint8_t) nVariables, numzVars);
-        closeCdf(cdfId);
-        return;
-    }
     for (uint8_t i = 0; i<nVariables; i++)
     {
         status = CDFconfirmzVarExistence(cdfId, variables[i]);

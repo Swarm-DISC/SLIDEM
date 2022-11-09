@@ -149,6 +149,9 @@ void interpolateVNEC(uint8_t **vnecDataBuffers, long nVnecRecs, uint8_t **hmData
 
 void interpolateDipLatitude(double *timeIn, double * dipLatIn, long nDipLatRecs, uint8_t **hmDataBuffers, long nHmRecs, double interpolates[])
 {
+    if (timeIn == NULL || dipLatIn == NULL || hmDataBuffers == NULL)
+        return;
+
     long dipLatTimeIndex = 0, hmTimeIndex = 0;
     size_t nearestPriorDipLatTimeIndex;
     double dtBefore, dtAfter;

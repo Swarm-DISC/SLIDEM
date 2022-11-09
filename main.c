@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
         fpDataBuffers[i] = NULL;
     }
     long nFp16HzRecs = 0;
-    loadInputs(fpFilename, NUM_FPFILE_VARIABLES, fpVariables, NUM_FP_VARIABLES, fpDataBuffers, &nFp16HzRecs);
+    loadInputs(fpFilename, fpVariables, NUM_FP_VARIABLES, fpDataBuffers, &nFp16HzRecs);
     fflush(stdout);
 
     char *hmVariables[NUM_HM_VARIABLES] = {
@@ -273,7 +273,7 @@ int main(int argc, char* argv[])
         hmDataBuffers[i] = NULL;
     }
     long nHmRecs = 0;
-    loadInputs(hmFilename, NUM_HMFILE_VARIABLES, hmVariables, NUM_HM_VARIABLES, hmDataBuffers, &nHmRecs);
+    loadInputs(hmFilename, hmVariables, NUM_HM_VARIABLES, hmDataBuffers, &nHmRecs);
     // Convert heights from km to m
     // Ensure longitude is within the range -180 to +180
     for (long hmTimeIndex = 0; hmTimeIndex < nHmRecs; hmTimeIndex++)
@@ -298,7 +298,13 @@ int main(int argc, char* argv[])
         magDataBuffers[i] = NULL;
     }
     long nMagRecs = 0;
-    loadInputs(magFilename, NUM_MAGFILE_VARIABLES, magVariables, NUM_MAG_VARIABLES, magDataBuffers, &nMagRecs);
+    loadInputs(magFilename, magVariables, NUM_MAG_VARIABLES, magDataBuffers, &nMagRecs);
+    if (nMagRecs == 0)
+    {
+        fprintf(stdout, "%sUnable to load magnetic field. Skipping this date.\n", infoHeader);
+        goto cleanup;
+
+    }
     double * dipLat = (double*)malloc((size_t)(sizeof(double) * nMagRecs));
     long nDipLatRecs = nMagRecs;
     calculateDipLatitude(magDataBuffers, nMagRecs, dipLat);

@@ -24,7 +24,7 @@
 #include <stdint.h>
 
 
-void loadInputs(const char *cdfFile, int expectedNumberOfFileVariables, char *variables[], int nVariables, uint8_t **dataBuffers, long *numberOfRecords);
+void loadInputs(const char *cdfFile, char *variables[], int nVariables, uint8_t **dataBuffers, long *numberOfRecords);
 
 #endif // _LOAD_INPUTS_H
 
