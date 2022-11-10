@@ -55,8 +55,7 @@
 #define VSHGN() (HMMEAS(12, 0, 1)) // LP EXTD Phi from high gain probe (V)
 #define VSLGN() (HMMEAS(13, 0, 1)) // LP EXTD Phi from low gain probe (V)
 #define USC() (HMMEAS(14, 0, 1)) // LP EXTD USC blended from both probes (V)
-#define LPFLAG() ((uint32_t)(*(HMADDR(15, 0, 1)))) // LP EXTD flag
-
+#define LPFLAG() (*((uint32_t*)hmDataBuffers[(n)]+hmTimeIndex))
 #define VNECADDR(n, m, d) (((double*)vnecDataBuffers[(n)]+(d*vnecTimeIndex + m)))
 #define VNECMEAS(n, m, d) ((double)(*(VNECADDR(n, m, d))))
 #define VN() (VNECMEAS(1, 0, 1)) // satellite velocity north component (m/s)
@@ -68,8 +67,8 @@
 #define BN() (MAGMEAS(1, 0, 3)) // MAG north component (nT)
 #define BE() (MAGMEAS(1, 1, 3)) // MAG east component (nT)
 #define BC() (MAGMEAS(1, 2, 3)) // MAG centre component (nT)
-#define MAGFLAGSB() ((uint8_t)(*(MAGADDR(2, 0, 1)))) // MAG Flags_b
-#define MAGFLAGSQ() ((uint8_t)(*(MAGADDR(3, 0, 1)))) // MAG Flags_b
+#define MAGFLAGSB() (*((uint8_t*)magDataBuffers[2]+magTimeIndex))
+#define MAGFLAGSQ() (*((uint8_t*)magDataBuffers[3]+magTimeIndex))
 
 
 #endif // MAIN_H
