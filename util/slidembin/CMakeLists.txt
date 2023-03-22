@@ -1,6 +1,6 @@
-# SLIDEM Processor: util/CMakeLists.txt
+# SLIDEM Processor: util/slidembin/CMakeLists.txt
 
-# Copyright (C) 2022  Johnathan K Burchill
+# Copyright (C) 2023  Johnathan K Burchill
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_subdirectory(printSortedVar)
-add_subdirectory(missingFiles)
-add_subdirectory(slidemParallel)
-add_subdirectory(slidembin)
+project(slidem)
+
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+
+ADD_EXECUTABLE(slidembin slidembin.c statistics.c)
+TARGET_LINK_LIBRARIES(slidembin -lgslcblas -lgsl -lcdf -lm)
+
+install(TARGETS printSortedVar DESTINATION $ENV{HOME}/bin)
