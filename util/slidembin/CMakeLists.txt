@@ -22,4 +22,4 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 ADD_EXECUTABLE(slidembin slidembin.c statistics.c)
 TARGET_LINK_LIBRARIES(slidembin -lgslcblas -lgsl -lcdf -lm)
 
-install(TARGETS printSortedVar DESTINATION $ENV{HOME}/bin)
+install(TARGETS slidembin DESTINATION $ENV{HOME}/bin)
