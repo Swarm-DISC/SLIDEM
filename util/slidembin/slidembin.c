@@ -621,7 +621,8 @@ int loadSlidemData(ProcessingParameters *params)
         return status;
     }
 
-    if (strcmp("M_i_eff", params->parameter) == 0)
+    // TBT model uses M_i_eff_Flags too
+    if (strcmp("M_i_eff", params->parameter) == 0 || strcmp("M_i_eff_tbt_model", params->parameter) == 0)
         status = loadCdfVariable(cdfId, "M_i_eff_Flags", (void**)&params->flags, NULL);
     else if (strcmp("V_i", params->parameter) == 0)
         status = loadCdfVariable(cdfId, "V_i_Flags", (void**)&params->flags, NULL);
