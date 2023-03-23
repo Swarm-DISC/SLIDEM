@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
         if (strcmp(argv[i], "--about") == 0)
         {
             fprintf(stdout, "SLIDEM Swarm Langmuir Probe Ion Drift, Density and Effective Mass processor, version %s.\n", SOFTWARE_VERSION);
-            fprintf(stdout, "Copyright (C) 2022  Johnathan K Burchill\n");
+            fprintf(stdout, "Copyright (C) 2023 Johnathan K Burchill\n");
             fprintf(stdout, "This program comes with ABSOLUTELY NO WARRANTY.\n");
             fprintf(stdout, "This is free software, and you are welcome to redistribute it\n");
             fprintf(stdout, "under the terms of the GNU General Public License.\n");
