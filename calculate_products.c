@@ -2,7 +2,7 @@
 
     SLIDEM Processor: calculate_products.c
 
-    Copyright (C) 2022  Johnathan K Burchill
+    Copyright (C) 2023 Johnathan K Burchill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,19 +33,19 @@
 
 void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fpCurrent, double *vn, double *ve, double *vc, double *dipLatitude, double *faceplateVoltage, double f107Adj, int yearDay, double *ionEffectiveMass, double *ionDensity, double *ionDriftRaw, double *ionDrift, double *ionEffectiveMassError, double *ionDensityError, double *ionDriftError, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, double *ionEffectiveMassTBT, uint32_t *mieffFlags, uint32_t *viFlags, uint32_t *niFlags, uint16_t *iterationCount, long nHmRecs, faceplateParams fpParams, probeParams sphericalProbeParams, long *numberOfSlidemEstimates)
 {
-    double fpArea;
-    double rProbe;
+    double fpArea = 0;
+    double rProbe = 0;
     double dipLat;
-    double mieff, miefflast, mikg, mieffmodel, mimodelkg;
-    double vions, vionslast; // In reference frame moving with satellite
-    double vionsram;
+    double mieff;
+    double mieffmodel;
+    double vions; // In reference frame moving with satellite
+    double vionsram; // From satellite motion
     double alongtrackiondrift;
-    double ni, nilast;
-    double di;
-    double ifp;
-    double te;
-    double vs;
-    double aFpGeo = SLIDEM_WFP * SLIDEM_HFP;
+    double ni; // Ion density
+    double di; // Ion admittance (inferred from L1b ion density)
+    double ifp; // Measured faceplate current
+    double te; // Electron temperature
+    double vs; // Satellite potential
     double mieffError = MISSING_ERROR_ESTIMATE_VALUE;
     double vionsError = MISSING_ERROR_ESTIMATE_VALUE;
     double niError = MISSING_ERROR_ESTIMATE_VALUE;
@@ -56,10 +56,10 @@ void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fp
     uint32_t viFlag = 0;
     uint32_t niFlag = 0;
     long slidemEstimates = 0;
+    int iterations = 0;
 
     for (long hmTimeIndex = 0; hmTimeIndex < nHmRecs; hmTimeIndex++)
     {
-        int iterations = 0;
         dipLat = dipLatitude[hmTimeIndex];
         if (MIEFF_FROM_TBT2015_MODEL)
         {
@@ -72,7 +72,6 @@ void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fp
         {
             mieffmodel = 16.0;
         }
-        mimodelkg = mieffmodel * SLIDEM_MAMU;
         mieff = mieffmodel; // seed for effective mass as low latitude, baseline for high latitude ion drift estimate
         mieffError = 0.0;
         mieffFlag = 0;
@@ -87,9 +86,6 @@ void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fp
         niError = 0.0;
         niFlag = 0;
         di = ni / (16.0 * SLIDEM_MAMU) / vionsram * (2.0 * M_PI * SLIDEM_RP * SLIDEM_RP * SLIDEM_QE * SLIDEM_QE); // A/V
-        vionslast = -10000000.;
-        miefflast = -10000000.;
-        nilast = -10000000.;
         ifp = -fpCurrent[hmTimeIndex] * 1e-9; // A
 
         // Get Te and Vs
@@ -100,74 +96,8 @@ void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fp
         // Process sample
         if(isfinite(ifp))
         {
-            while (
-                iterations < SLIDEM_MAX_ITERATIONS && 
-                !(
-                    fabs(ni - nilast) < nilast * SLIDEM_NI_ITERATION_THRESHOLD &&
-                    fabs(vions - vionslast) < SLIDEM_VI_ITERATION_THRESHOLD &&
-                    fabs(mieff - miefflast) < mieff * SLIDEM_MIEFF_ITERATION_THRESHOLD
-                ) // Correct version. Mathematica version would stop if only one parameter converged
-            )
-            {
-                // Reset reference values for for triggering out of the iteration
-                vionslast = vions;
-                miefflast = mieff;
-                mikg = mieff * SLIDEM_MAMU;
-                nilast = ni;
+            iterations = iterateEquations(&ni, ni, &vions, &mieff, &viFlag, &mieffFlag, &fpArea, &rProbe, te, vs, faceplateVoltage[hmTimeIndex], fpParams, sphericalProbeParams, ifp, di, vionsram, mieffmodel, QDLAT(), false);
 
-                if (MODIFIED_OML_GEOMETRIES)
-                {
-                    // revise estimates of probe effective geometries
-                    if (MODIFIED_OML_FACEPLATE_CORRECTION)
-                        fpArea = faceplateArea(ni, te, vs, mieff, vions, faceplateVoltage[hmTimeIndex], fpParams);
-                    else
-                        fpArea = aFpGeo;
-                    
-                    if (MODIFIED_OML_SPHERICAL_PROBE_CORRECTION)
-                        rProbe = probeRadius(ni, te, vs, mieff, vions, sphericalProbeParams);
-                    else
-                        rProbe = SLIDEM_RP;
-                }
-                else
-                {
-                    fpArea = aFpGeo;
-                    rProbe = SLIDEM_RP;
-                }
-
-                // Try to estimate even if OML model is wrong (i.e., NAN from sqrt of negative numbers)
-                // but leave as nan on the last iteration
-                if (!isfinite(fpArea) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) fpArea = aFpGeo;
-                if (!isfinite(rProbe) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) rProbe = SLIDEM_RP;
-
-                // Estimate effective mass at all latitudes
-                mieff = (4.0 * M_PI * rProbe * rProbe * SLIDEM_QE * ifp) / (2.0 * fpArea * di * vionsram * vionsram) / SLIDEM_MAMU;
-                if (!isfinite(mieff) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) mieff = mieffmodel;
-
-
-                // Ion drift at high latitude
-                if (fabs(QDLAT()) >= SLIDEM_QDLAT_CUTOFF)
-                {
-                    vions = sqrt((4.0 * M_PI * rProbe * rProbe * SLIDEM_QE * ifp) / (2.0 * fpArea * di * mimodelkg));
-                    if (!isfinite(vions) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) vions = vionsram;
-                    mieffFlag |= SLIDEM_FLAG_BEYOND_VALID_QDLATITUDE;
-
-                    ni = sqrt(2.0 * ifp * di * mimodelkg / (fpArea * 4.0 * M_PI * rProbe * rProbe * SLIDEM_QE * SLIDEM_QE * SLIDEM_QE));
-                    if (!isfinite(ni) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) ni = ifp / (aFpGeo * SLIDEM_QE * vions);
-                    if (!isfinite(ni) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) ni = NI() * 1.0e6;
-                }
-                else // effective mass estimates are intended for low latitude
-                {
-                    viFlag |= SLIDEM_FLAG_BEYOND_VALID_QDLATITUDE;
-                    ni = ifp / (fpArea * SLIDEM_QE * vionsram);
-                    if (!isfinite(ni) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) ni = ifp / (aFpGeo * SLIDEM_QE * vionsram);
-                    // Check again, in case aFpGeo is not finite
-                    if (!isfinite(ni) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) ni = NI() * 1.0e6;
-                }
-
-                // TODO Calculate error estimates and flags
-
-                iterations++;
-            }
             if (fabs(QDLAT()) > SLIDEM_QDLAT_CUTOFF)
                 alongtrackiondrift = vionsram - vions; // positive in direction of satellite velocity vector
             else
@@ -458,4 +388,126 @@ void getTeVs(const char satellite, uint8_t **hmDataBuffers, long hmTimeIndex, do
 #endif
 
     return;
+}
+
+int iterateEquations(double *niIO, double nil1b, double *vionsIO, double *mieffIO, uint32_t *viFlagIO, uint32_t *mieffFlagIO, double *fpAreaIO, double *rProbeIO, double te, double vs, double faceplateVoltage, faceplateParams fpParams, probeParams sphericalProbeParams, double ifp, double di, double vionsram, double mieffmodel, double qdlat, bool postProcessing)
+{
+    int iterations = 0;
+    double ni = *niIO;
+    double vions = *vionsIO;
+    double mieff = *mieffIO;
+    uint32_t viFlag = *viFlagIO;
+    uint32_t mieffFlag = *mieffFlagIO;
+
+    double vionslast = -10000000.;
+    double miefflast = -10000000.;
+    double nilast = -10000000.;
+
+    double mikg = 0.0;
+    double mimodelkg = mieffmodel * SLIDEM_MAMU;
+
+
+    double fpArea = 0.0;
+    double rProbe = 0.0;
+    double aFpGeo = SLIDEM_WFP * SLIDEM_HFP;
+
+    while (
+        iterations < SLIDEM_MAX_ITERATIONS && 
+        !(
+            fabs(ni - nilast) < nilast * SLIDEM_NI_ITERATION_THRESHOLD &&
+            fabs(vions - vionslast) < SLIDEM_VI_ITERATION_THRESHOLD &&
+            fabs(mieff - miefflast) < mieff * SLIDEM_MIEFF_ITERATION_THRESHOLD
+        )
+    )
+    {
+        // Reset reference values for for triggering out of the iteration
+        vionslast = vions;
+        miefflast = mieff;
+        mikg = mieff * SLIDEM_MAMU;
+        nilast = ni;
+
+        if (MODIFIED_OML_GEOMETRIES)
+        {
+            // revise estimates of probe effective geometries
+            if (MODIFIED_OML_FACEPLATE_CORRECTION)
+                fpArea = faceplateArea(ni, te, vs, mieff, vions, faceplateVoltage, fpParams);
+            else
+                fpArea = aFpGeo;
+            
+            if (MODIFIED_OML_SPHERICAL_PROBE_CORRECTION)
+                rProbe = probeRadius(ni, te, vs, mieff, vions, sphericalProbeParams);
+            else
+                rProbe = SLIDEM_RP;
+        }
+        else
+        {
+            fpArea = aFpGeo;
+            rProbe = SLIDEM_RP;
+        }
+
+        // Try to estimate even if OML model is wrong (i.e., NAN from sqrt of negative numbers)
+        // but leave as nan on the last iteration
+        if (!isfinite(fpArea) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) fpArea = aFpGeo;
+        if (!isfinite(rProbe) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) rProbe = SLIDEM_RP;
+
+        // Estimate effective mass at all latitudes
+        if (!postProcessing)
+            mieff = (4.0 * M_PI * rProbe * rProbe * SLIDEM_QE * ifp) / (2.0 * fpArea * di * vionsram * vionsram) / SLIDEM_MAMU;
+        else
+            mieff = (4.0 * M_PI * rProbe * rProbe * SLIDEM_QE * ifp) / (2.0 * fpArea * di * vions * vions) / SLIDEM_MAMU;
+
+        if (!isfinite(mieff) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) mieff = mieffmodel;
+
+        mikg = mieff * SLIDEM_MAMU;
+
+        // Ion drift at high latitude
+        if (fabs(qdlat) >= SLIDEM_QDLAT_CUTOFF)
+        {
+            if (!postProcessing)
+            {
+                vions = sqrt((4.0 * M_PI * rProbe * rProbe * SLIDEM_QE * ifp) / (2.0 * fpArea * di * mimodelkg));
+                if (!isfinite(vions) && iterations < (SLIDEM_MAX_ITERATIONS - 1))
+                    vions = vionsram;
+                mieffFlag |= SLIDEM_FLAG_BEYOND_VALID_QDLATITUDE;
+                ni = sqrt(2.0 * ifp * di * mimodelkg / (fpArea * 4.0 * M_PI * rProbe * rProbe * SLIDEM_QE * SLIDEM_QE * SLIDEM_QE));
+                if (!isfinite(ni) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) ni = ifp / (aFpGeo * SLIDEM_QE * vions);
+                if (!isfinite(ni) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) ni = nil1b;
+            }
+            else
+            {
+                ni = sqrt(2.0 * ifp * di * mikg / (fpArea * 4.0 * M_PI * rProbe * rProbe * SLIDEM_QE * SLIDEM_QE * SLIDEM_QE));
+                if (!isfinite(ni) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) ni = ifp / (aFpGeo * SLIDEM_QE * vions);
+                if (!isfinite(ni) && iterations < (SLIDEM_MAX_ITERATIONS - 1)) ni = nil1b;
+            }
+
+        }
+        else // effective mass estimates are intended for low latitude
+        {
+            viFlag |= SLIDEM_FLAG_BEYOND_VALID_QDLATITUDE;
+            ni = ifp / (fpArea * SLIDEM_QE * vions);
+            if (!isfinite(ni) && iterations < (SLIDEM_MAX_ITERATIONS - 1))
+                ni = ifp / (aFpGeo * SLIDEM_QE * vions);
+            // Check again, in case aFpGeo is not finite
+            if (!isfinite(ni) && iterations < (SLIDEM_MAX_ITERATIONS - 1))
+                ni = nil1b;
+        }
+
+        // TODO Calculate error estimates and flags
+
+        iterations++;
+    }
+
+    if (!postProcessing)
+    {
+        *vionsIO = vions;
+        *viFlagIO = viFlag;
+    }
+    
+    *niIO = ni;
+    *mieffIO = mieff;
+    *mieffFlagIO = mieffFlag;
+    *fpAreaIO = fpArea;
+    *rProbeIO = rProbe;
+
+    return iterations;
 }

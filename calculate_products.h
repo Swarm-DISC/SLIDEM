@@ -2,7 +2,7 @@
 
     SLIDEM Processor: calculate_products.h
 
-    Copyright (C) 2022  Johnathan K Burchill
+    Copyright (C) 2023 Johnathan K Burchill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #define _CALCULATE_PRODUCTS_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "modified_oml.h"
 
@@ -29,6 +30,7 @@ void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fp
 
 void getTeVs(const char satellite, uint8_t **hmDataBuffers, long hmTimeIndex, double *te, uint32_t *teSource, double *vs, uint32_t *vsSource);
 
+int iterateEquations(double *niIO, double nil1b, double *vionsIO, double *mieffIO, uint32_t *viFlagIO, uint32_t *mieffFlagIO, double *fpAreaIO, double *rProbeIO, double te, double vs, double faceplateVoltage, faceplateParams fpParams, probeParams sphericalProbeParams, double ifp, double di, double vionsram, double mieffmodel, double qdlat, bool postProcessing);
 
 enum LP_FLAGS {
     LP_HGN_OVERFLOW_LINEAR_BIAS = 1 << 2,

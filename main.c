@@ -2,7 +2,7 @@
 
     SLIDEM Processor: main.c
 
-    Copyright (C) 2022  Johnathan K Burchill
+    Copyright (C) 2023 Johnathan K Burchill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@
 #include "modified_oml.h"
 #include "calculate_diplatitude.h"
 #include "calculate_products.h"
-#include "post_process_ion_drift.h"
+#include "post_process.h"
 #include "export_products.h"
 #include "write_header.h"
 
@@ -414,7 +414,7 @@ int main(int argc, char* argv[])
 
     if (POST_PROCESS_ION_DRIFT)
     {
-        postProcessIonDrift(slidemFullFilename, satellite, hmDataBuffers, fpCurrent, ionDrift, ionDriftError, viFlags, nHmRecs);
+        postProcessIonDrift(slidemFullFilename, satellite, hmDataBuffers, vn, ve, vc, fpCurrent, fpVoltage, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, ionEffectiveMassTTS, ionDrift, ionDriftError, ionEffectiveMass, ionEffectiveMassError, ionDensity, ionDensityError, viFlags, mieffFlags, niFlags, iterationCount, fpParams, sphericalProbeParams, nHmRecs);
     }
 
     // Write CDF file

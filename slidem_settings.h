@@ -2,7 +2,7 @@
 
     SLIDEM Processor: slidem_settings.h
 
-    Copyright (C) 2022  Johnathan K Burchill
+    Copyright (C) 2023 Johnathan K Burchill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,8 @@
 #define MODIFIED_OML_SPHERICAL_PROBE_CORRECTION true
 
 #define POST_PROCESS_ION_DRIFT true // remove high-latitude linear drift vs time model from ion drift
+#define POST_PROCESS_ION_EFFECTIVE_MASS_AND_DENSITY true // Update high-latitude ion effective mass and ion density based on offset-corrected ion drifts
+
 #define SLIDEM_QDLAT_CUTOFF 50 // Quasi-dipolar magnetic latitude boundary for estimating effective mass and ion drift. Calculate ion drift and ion drift complementary ion density if at or poleward of this QD latitude.
 #define SLIDEM_POST_PROCESSING_QDLAT_WIDTH 1.0 // from SLIDEM_QDLAT_CUTOFF to SLIDEM_QDLAT_CUTOFF + SLIDEM_POST_PROCESSING_QDLAT_WIDTH
 
