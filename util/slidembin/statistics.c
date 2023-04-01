@@ -140,9 +140,10 @@ int allocateBinStorage(double ***bins, size_t **binSizes, size_t **binValidSizes
 // Grow the allocated bin storage
 int adjustBinStorage(double **bins, size_t *binMaxSizes, int mltQdLatIndex, long numberOfElementsToAdd)
 {
-    bins[mltQdLatIndex] = realloc(bins[mltQdLatIndex], (binMaxSizes[mltQdLatIndex] + numberOfElementsToAdd) * sizeof bins[mltQdLatIndex]);
-    if (bins[mltQdLatIndex] == NULL)
+    void *mem = realloc(bins[mltQdLatIndex], (binMaxSizes[mltQdLatIndex] + numberOfElementsToAdd) * sizeof *bins[mltQdLatIndex]);
+    if (mem == NULL)
         return STATISTICS_MEM;
+    bins[mltQdLatIndex] = mem;
 
     binMaxSizes[mltQdLatIndex] += numberOfElementsToAdd;
 
