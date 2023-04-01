@@ -38,7 +38,7 @@
 
 extern char infoHeader[50];
 
-void postProcessIonDrift(const char *slidemFilename, const char satellite, uint8_t **hmDataBuffers, double *vn, double *ve, double *vc, double *fpCurrent, double *faceplateVoltage, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, double *ionEffectiveMassTTS, double *ionDrift, double *ionDriftError, double *ionEffectiveMass, double *ionEffectiveMassError, double *ionDensity, double *ionDensityError, uint32_t *viFlags, uint32_t *mieffFlags, uint32_t *niFlags, uint16_t *iterationCount, faceplateParams fpParams, probeParams sphericalProbeParams, long nHmRecs)
+void postProcessIonDrift(const char *slidemFilename, const char satellite, uint8_t **hmDataBuffers, double *vn, double *ve, double *vc, double *dipLatitude, double *fpCurrent, double *faceplateVoltage, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, uint32_t *electronTemperatureSource, uint32_t *spacecraftPotentialSource, double *ionEffectiveMassTTS, double *ionDrift, double *ionDriftError, double *ionEffectiveMass, double *ionEffectiveMassError, double *ionDensity, double *ionDensityError, uint32_t *viFlags, uint32_t *mieffFlags, uint32_t *niFlags, uint16_t *iterationCount, faceplateParams fpParams, probeParams sphericalProbeParams, long nHmRecs)
 {
     fprintf(stdout, "%sPost-processing ion drift\n", infoHeader);
 
@@ -80,14 +80,14 @@ void postProcessIonDrift(const char *slidemFilename, const char satellite, uint8
 
     for (uint8_t ind = 0; ind < 2; ind++)
     {
-        removeOffsetsAndSetFlags(satellite, fitargs[ind], nHmRecs, hmDataBuffers, vn, ve, vc, fpCurrent, faceplateVoltage, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, ionEffectiveMassTTS, ionDrift, ionDriftError, ionEffectiveMass, ionEffectiveMassError, ionDensity, ionDensityError, viFlags, mieffFlags, niFlags, iterationCount, fpParams, sphericalProbeParams, fitFile);
+        removeOffsetsAndSetFlags(satellite, fitargs[ind], nHmRecs, hmDataBuffers, vn, ve, vc, dipLatitude, fpCurrent, faceplateVoltage, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, electronTemperatureSource, spacecraftPotentialSource, ionEffectiveMassTTS, ionDrift, ionDriftError, ionEffectiveMass, ionEffectiveMassError, ionDensity, ionDensityError, viFlags, mieffFlags, niFlags, iterationCount, fpParams, sphericalProbeParams, fitFile);
     }
 
     fclose(fitFile);
 
 }
 
-void removeOffsetsAndSetFlags(const char satellite, offset_model_fit_arguments fitargs, long nHmRecs, uint8_t **hmDataBuffers, double *vn, double *ve, double *vc, double *fpCurrent, double *faceplateVoltage, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, double *ionEffectiveMassTTS, double *ionDrift, double *ionDriftError, double *ionEffectiveMass, double *ionEffectiveMassError, double *ionDensity, double *ionDensityError, uint32_t *viFlags, uint32_t *mieffFlags, uint32_t *niFlags, uint16_t *iterationCount, faceplateParams fpParams, probeParams sphericalProbeParams, FILE* fitFile)
+void removeOffsetsAndSetFlags(const char satellite, offset_model_fit_arguments fitargs, long nHmRecs, uint8_t **hmDataBuffers, double *vn, double *ve, double *vc, double *dipLatitude, double *fpCurrent, double *faceplateVoltage, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, uint32_t *electronTemperatureSource, uint32_t *spacecraftPotentialSource, double *ionEffectiveMassTTS, double *ionDrift, double *ionDriftError, double *ionEffectiveMass, double *ionEffectiveMassError, double *ionDensity, double *ionDensityError, uint32_t *viFlags, uint32_t *mieffFlags, uint32_t *niFlags, uint16_t *iterationCount, faceplateParams fpParams, probeParams sphericalProbeParams, FILE* fitFile)
 {
     long hmTimeIndex = 0;
     double epoch0 = HMTIME();
@@ -151,6 +151,7 @@ void removeOffsetsAndSetFlags(const char satellite, offset_model_fit_arguments f
     double mieff = 0;
     uint32_t viFlag = 0;
     uint32_t mieffFlag = 0;
+    uint32_t niFlag = 0;
     double fpArea = 0;
     double rProbe = 0;
     double te = 0;
@@ -343,6 +344,7 @@ void removeOffsetsAndSetFlags(const char satellite, offset_model_fit_arguments f
                                         vions = vionsram - ionDrift[hmTimeIndex];
                                         viFlag = viFlags[hmTimeIndex];
                                         ni = ionDensity[hmTimeIndex] * 1e6;
+                                        niFlag = niFlags[hmTimeIndex];
                                         di = NI() * 1e6 / (16.0 * SLIDEM_MAMU) / vionsram * (2.0 * M_PI * SLIDEM_RP * SLIDEM_RP * SLIDEM_QE * SLIDEM_QE); // A/V
                                         ifp = -fpCurrent[hmTimeIndex] * 1e-9; // A
                                         mieff = ionEffectiveMass[hmTimeIndex];
@@ -353,14 +355,19 @@ void removeOffsetsAndSetFlags(const char satellite, offset_model_fit_arguments f
                                         vs = spacecraftPotential[hmTimeIndex];
                                         mieffmodel = ionEffectiveMassTTS[hmTimeIndex];
 
-                                        iterations = iterateEquations(&ni, ni, &vions, &mieff, &viFlag, &mieffFlag, &fpArea, &rProbe, te, vs, faceplateVoltage[hmTimeIndex], fpParams, sphericalProbeParams, ifp, di, vionsram, mieffmodel, QDLAT(), true);
+                                        iterations = iterateEquations(&ni, ni, &vions, &mieff, &viFlag, &mieffFlag, &niFlag, &fpArea, &rProbe, te, vs, faceplateVoltage[hmTimeIndex], fpParams, sphericalProbeParams, ifp, di, vionsram, mieffmodel, QDLAT(), true);
+
+                                        updateFlags(iterations, &mieff, &ionEffectiveMassError[hmTimeIndex], &ionDrift[hmTimeIndex], &ionDensityError[hmTimeIndex], &ni, &ionDensityError[hmTimeIndex], &fpAreaOML[hmTimeIndex], &rProbeOML[hmTimeIndex], te, vs, electronTemperatureSource[hmTimeIndex], spacecraftPotentialSource[hmTimeIndex], vionsram, dipLatitude[hmTimeIndex], vn, ve, vc, &mieffFlag, NULL, &niFlag, NULL, hmDataBuffers, hmTimeIndex);
 
                                         ionDensity[hmTimeIndex] = ni / 1e6;
+                                        niFlags[hmTimeIndex] = niFlag;
                                         ionEffectiveMass[hmTimeIndex] = mieff;
+                                        mieffFlags[hmTimeIndex] = mieffFlag;
                                         fpAreaOML[hmTimeIndex] = fpArea;
                                         rProbeOML[hmTimeIndex] = rProbe;
                                         iterationCount[hmTimeIndex] += iterations;
-                                        // TODO update mieff and ni flags?
+
+
                                     }
                                 }
                             }

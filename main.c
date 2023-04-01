@@ -391,30 +391,32 @@ int main(int argc, char* argv[])
     fprintf(stdout, "%sInterpolated dip latitude to HM times.\n", infoHeader);
     
     // Calculate SLIDEM products
-    double *ionEffectiveMass = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *ionDensity = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *ionDriftRaw = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *ionDrift = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *ionEffectiveMassError = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *ionDensityError = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *ionDriftError = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *fpAreaOML = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *rProbeOML = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *electronTemperature = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *spacecraftPotential = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    double *ionEffectiveMassTTS = (double*) malloc((size_t) (nHmRecs * sizeof(double)));
-    uint32_t *mieffFlags = (uint32_t*) malloc((size_t) (nHmRecs * sizeof(uint32_t)));
-    uint32_t *viFlags = (uint32_t*) malloc((size_t) (nHmRecs * sizeof(uint32_t)));
-    uint32_t *niFlags = (uint32_t*) malloc((size_t) (nHmRecs * sizeof(uint32_t)));
-    uint16_t *iterationCount = (uint16_t*) malloc((size_t) (nHmRecs * sizeof(uint16_t)));
+    double *ionEffectiveMass = malloc((size_t) (nHmRecs * sizeof(double)));
+    double *ionDensity = malloc((size_t) (nHmRecs * sizeof(double)));
+    double *ionDriftRaw = malloc((size_t) (nHmRecs * sizeof(double)));
+    double *ionDrift = malloc((size_t) (nHmRecs * sizeof(double)));
+    double *ionEffectiveMassError = malloc((size_t) (nHmRecs * sizeof(double)));
+    double *ionDensityError = malloc((size_t) (nHmRecs * sizeof(double)));
+    double *ionDriftError = malloc((size_t) (nHmRecs * sizeof(double)));
+    double *fpAreaOML = malloc((size_t) (nHmRecs * sizeof(double)));
+    double *rProbeOML = malloc((size_t) (nHmRecs * sizeof(double)));
+    double *electronTemperature = malloc((size_t) (nHmRecs * sizeof(double)));
+    double *spacecraftPotential = malloc((size_t) (nHmRecs * sizeof(double)));
+    uint32_t *electronTemperatureSource = malloc((size_t) (nHmRecs * sizeof(uint32_t)));
+    uint32_t *spacecraftPotentialSource = malloc((size_t) (nHmRecs * sizeof(uint32_t)));
+    double *ionEffectiveMassTTS = malloc((size_t) (nHmRecs * sizeof(double)));
+    uint32_t *mieffFlags = malloc((size_t) (nHmRecs * sizeof(uint32_t)));
+    uint32_t *viFlags = malloc((size_t) (nHmRecs * sizeof(uint32_t)));
+    uint32_t *niFlags = malloc((size_t) (nHmRecs * sizeof(uint32_t)));
+    uint16_t *iterationCount = malloc((size_t) (nHmRecs * sizeof(uint16_t)));
     long numberOfSlidemEstimates = 0;
 
-    calculateProducts(satellite, hmDataBuffers, fpCurrent, vn, ve, vc, dipLatitude, fpVoltage, f107Adj, yday, ionEffectiveMass, ionDensity, ionDriftRaw, ionDrift, ionEffectiveMassError, ionDensityError, ionDriftError, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, ionEffectiveMassTTS, mieffFlags, viFlags, niFlags, iterationCount, nHmRecs, fpParams, sphericalProbeParams, &numberOfSlidemEstimates);
+    calculateProducts(satellite, hmDataBuffers, fpCurrent, vn, ve, vc, dipLatitude, fpVoltage, f107Adj, yday, ionEffectiveMass, ionDensity, ionDriftRaw, ionDrift, ionEffectiveMassError, ionDensityError, ionDriftError, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, electronTemperatureSource, spacecraftPotentialSource, ionEffectiveMassTTS, mieffFlags, viFlags, niFlags, iterationCount, nHmRecs, fpParams, sphericalProbeParams, &numberOfSlidemEstimates);
     fprintf(stdout, "%sCalculated %ld SLIDEM IDM products.\n", infoHeader, numberOfSlidemEstimates);
 
     if (POST_PROCESS_ION_DRIFT)
     {
-        postProcessIonDrift(slidemFullFilename, satellite, hmDataBuffers, vn, ve, vc, fpCurrent, fpVoltage, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, ionEffectiveMassTTS, ionDrift, ionDriftError, ionEffectiveMass, ionEffectiveMassError, ionDensity, ionDensityError, viFlags, mieffFlags, niFlags, iterationCount, fpParams, sphericalProbeParams, nHmRecs);
+        postProcessIonDrift(slidemFullFilename, satellite, hmDataBuffers, vn, ve, vc, dipLatitude, fpCurrent, fpVoltage, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, electronTemperatureSource, spacecraftPotentialSource, ionEffectiveMassTTS, ionDrift, ionDriftError, ionEffectiveMass, ionEffectiveMassError, ionDensity, ionDensityError, viFlags, mieffFlags, niFlags, iterationCount, fpParams, sphericalProbeParams, nHmRecs);
     }
 
     // Write CDF file

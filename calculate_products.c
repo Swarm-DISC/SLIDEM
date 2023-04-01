@@ -31,7 +31,7 @@
 
 #include <gsl/gsl_math.h>
 
-void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fpCurrent, double *vn, double *ve, double *vc, double *dipLatitude, double *faceplateVoltage, double f107Adj, int yearDay, double *ionEffectiveMass, double *ionDensity, double *ionDriftRaw, double *ionDrift, double *ionEffectiveMassError, double *ionDensityError, double *ionDriftError, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, double *ionEffectiveMassTBT, uint32_t *mieffFlags, uint32_t *viFlags, uint32_t *niFlags, uint16_t *iterationCount, long nHmRecs, faceplateParams fpParams, probeParams sphericalProbeParams, long *numberOfSlidemEstimates)
+void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fpCurrent, double *vn, double *ve, double *vc, double *dipLatitude, double *faceplateVoltage, double f107Adj, int yearDay, double *ionEffectiveMass, double *ionDensity, double *ionDriftRaw, double *ionDrift, double *ionEffectiveMassError, double *ionDensityError, double *ionDriftError, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, uint32_t *electronTemperatureSource, uint32_t *spacecraftPotentialSource, double *ionEffectiveMassTBT, uint32_t *mieffFlags, uint32_t *viFlags, uint32_t *niFlags, uint16_t *iterationCount, long nHmRecs, faceplateParams fpParams, probeParams sphericalProbeParams, long *numberOfSlidemEstimates)
 {
     double fpArea = 0;
     double rProbe = 0;
@@ -92,168 +92,20 @@ void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fp
         getTeVs(satellite, hmDataBuffers, hmTimeIndex, &te, &teSource, &vs, &vsSource);
         electronTemperature[hmTimeIndex] = te;
         spacecraftPotential[hmTimeIndex] = vs;
+        electronTemperatureSource[hmTimeIndex] = teSource;
+        spacecraftPotentialSource[hmTimeIndex] = vsSource;
 
         // Process sample
         if(isfinite(ifp))
         {
-            iterations = iterateEquations(&ni, ni, &vions, &mieff, &viFlag, &mieffFlag, &fpArea, &rProbe, te, vs, faceplateVoltage[hmTimeIndex], fpParams, sphericalProbeParams, ifp, di, vionsram, mieffmodel, QDLAT(), false);
+            iterations = iterateEquations(&ni, ni, &vions, &mieff, &viFlag, &mieffFlag, &niFlag, &fpArea, &rProbe, te, vs, faceplateVoltage[hmTimeIndex], fpParams, sphericalProbeParams, ifp, di, vionsram, mieffmodel, QDLAT(), false);
 
             if (fabs(QDLAT()) > SLIDEM_QDLAT_CUTOFF)
                 alongtrackiondrift = vionsram - vions; // positive in direction of satellite velocity vector
             else
                 alongtrackiondrift = MISSING_VI_VALUE;
-            if (iterations >= SLIDEM_MAX_ITERATIONS)
-            {
-                mieffFlag |= SLIDEM_FLAG_ESTIMATE_DID_NOT_CONVERGE;
-                viFlag |= SLIDEM_FLAG_ESTIMATE_DID_NOT_CONVERGE;
-                niFlag |= SLIDEM_FLAG_ESTIMATE_DID_NOT_CONVERGE;
-            }
-            else
-            {
-                slidemEstimates++;
-            }
 
-            // Replace nans for CDF export
-            if (isfinite(mieff))
-            {
-                if (mieff > FLAGS_MAXIMUM_MIEFF)
-                    mieffFlag |= SLIDEM_FLAG_ESTIMATE_TOO_LARGE;
-                else if (mieff < FLAGS_MINIMUM_MIEFF)
-                    mieffFlag |= SLIDEM_FLAG_ESTIMATE_TOO_SMALL;
-            }
-            else
-            {
-                mieff = MISSING_MIEFF_VALUE;
-                mieffFlag |= SLIDEM_FLAG_PRODUCT_ESTIMATE_NOT_FINITE;
-            }
-            if (!isfinite(mieffError))
-            {
-                mieffError = MISSING_ERROR_ESTIMATE_VALUE;
-                mieffFlag |= SLIDEM_FLAG_UNCERTAINTY_ESTIMATE_NOT_FINITE;
-            }
-            if (isfinite(alongtrackiondrift))
-            {
-                if (fabs(alongtrackiondrift) > FLAGS_MAXIMUM_DRIFT_MAGNITUDE)
-                    viFlag |= SLIDEM_FLAG_ESTIMATE_TOO_LARGE;
-            }
-            else
-            {
-                alongtrackiondrift = MISSING_VI_VALUE;
-                viFlag |= SLIDEM_FLAG_PRODUCT_ESTIMATE_NOT_FINITE;
-            }
-            if (!isfinite(vionsError))
-            {
-                vionsError = MISSING_ERROR_ESTIMATE_VALUE;
-                viFlag |= SLIDEM_FLAG_UNCERTAINTY_ESTIMATE_NOT_FINITE;
-            }
-            if (isfinite(ni))
-            {
-                if (ni > FLAGS_MAXIMUM_NI)
-                    niFlag |= SLIDEM_FLAG_ESTIMATE_TOO_LARGE;
-                else if (niFlag < FLAGS_MINIMUM_NI)
-                    niFlag |= SLIDEM_FLAG_ESTIMATE_TOO_SMALL;
-            }
-            else
-            {
-                ni = MISSING_NI_VALUE * 1e6;
-                niFlag |= SLIDEM_FLAG_PRODUCT_ESTIMATE_NOT_FINITE;
-            }
-            if (!isfinite(niError))
-            {
-                niError = MISSING_ERROR_ESTIMATE_VALUE;
-                niFlag |= SLIDEM_FLAG_UNCERTAINTY_ESTIMATE_NOT_FINITE;
-            }
-            if (isfinite(fpArea))
-            {
-                if (fpArea > FLAGS_MAXIMUM_FACEPLATE_AREA || fpArea < FLAGS_MINIMUM_FACEPLATE_AREA)
-                {
-                    mieffFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
-                    viFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
-                    niFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
-                }
-            }
-            else
-            {
-                fpArea = MISSING_FPAREA_VALUE;
-                mieffFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
-                mieffFlag |= SLIDEM_FLAG_FACEPLATE_AREA_ESTIMATE_NOT_FINITE;
-                viFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
-                viFlag |= SLIDEM_FLAG_FACEPLATE_AREA_ESTIMATE_NOT_FINITE;
-                niFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
-                niFlag |= SLIDEM_FLAG_FACEPLATE_AREA_ESTIMATE_NOT_FINITE;
-            }
-            if (isfinite(rProbe))
-            {
-                if (rProbe > FLAGS_MAXIMUM_PROBE_RADIUS || rProbe < FLAGS_MINIMUM_PROBE_RADIUS)
-                {
-                    mieffFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
-                    viFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
-                    niFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
-                }
-            }
-            else
-            {
-                rProbe = MISSING_RPROBE_VALUE;
-                mieffFlag |= SLIDEM_FLAG_OML_PROBE_RADIUS_CORRECTION_INVALID;
-                mieffFlag |= SLIDEM_FLAG_PROBE_RADIUS_ESTIMATE_NOT_FINITE;
-                viFlag |= SLIDEM_FLAG_OML_PROBE_RADIUS_CORRECTION_INVALID;
-                viFlag |= SLIDEM_FLAG_PROBE_RADIUS_ESTIMATE_NOT_FINITE;
-                niFlag |= SLIDEM_FLAG_OML_PROBE_RADIUS_CORRECTION_INVALID;
-                niFlag |= SLIDEM_FLAG_PROBE_RADIUS_ESTIMATE_NOT_FINITE;
-            }
-
-            // LP validity checks
-            // Potential difference between spherical probes too large? 
-            if (fabs(VSHGN() - VSLGN()) > FLAGS_MAXIMUM_PROBE_POTENTIAL_DIFFERENCE)
-            {
-                mieffFlag |= SLIDEM_FLAG_LP_PROBE_POTENTIAL_DIFFERENCE_TOO_LARGE;
-                viFlag |= SLIDEM_FLAG_LP_PROBE_POTENTIAL_DIFFERENCE_TOO_LARGE;
-                niFlag |= SLIDEM_FLAG_LP_PROBE_POTENTIAL_DIFFERENCE_TOO_LARGE;
-            }
-            // Spacecraft potential too negative?
-            if (vs < FLAGS_MINIMUM_LP_SPACECRAFT_POTENTIAL)
-            {
-                mieffFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_NEGATIVE;
-                mieffFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
-                viFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_NEGATIVE;
-                viFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
-                niFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_NEGATIVE;
-                niFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
-            }
-            else if (vs > FLAGS_MAXIMUM_LP_SPACECRAFT_POTENTIAL)
-            {
-                mieffFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_POSITIVE;
-                mieffFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
-                viFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_POSITIVE;
-                viFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
-                niFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_POSITIVE;
-                niFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
-            }
-            // LP Probe issues?
-            if (te < FLAGS_MINIMUM_LP_TE || te > FLAGS_MAXIMUM_LP_TE || ni < FLAGS_MINIMUM_NI || ni > FLAGS_MAXIMUM_NI || teSource == LP_NO_PROBE || vsSource == LP_NO_PROBE)
-            {
-                mieffFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
-                viFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
-                niFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
-            }
-            // Satellite velocity data available?
-            if (!isfinite(vionsram))
-            {
-                // overwrite VNEC and raise flags
-                vn[hmTimeIndex] = MISSING_VNEC_VALUE;
-                ve[hmTimeIndex] = MISSING_VNEC_VALUE;
-                vc[hmTimeIndex] = MISSING_VNEC_VALUE;
-                mieffFlag |= SLIDEM_FLAG_NO_SATELLITE_VELOCITY;
-                viFlag |= SLIDEM_FLAG_NO_SATELLITE_VELOCITY;
-                niFlag |= SLIDEM_FLAG_NO_SATELLITE_VELOCITY;
-            }
-            // DIP Latitude missing? Has to be due to a problem with input MAG data
-            if (dipLat == MISSING_DIPLAT_VALUE)
-            {
-                mieffFlag |= SLIDEM_FLAG_MAG_INPUT_INVALID;
-                viFlag |= SLIDEM_FLAG_MAG_INPUT_INVALID;
-                niFlag |= SLIDEM_FLAG_MAG_INPUT_INVALID;
-            }
+            updateFlags(iterations, &mieff, &mieffError, &alongtrackiondrift, &vionsError, &ni, &niError, &fpArea, &rProbe, te, vs, teSource, vsSource, vionsram, dipLat, vn, ve, vc, &mieffFlag, &viFlag, &niFlag, &slidemEstimates, hmDataBuffers, hmTimeIndex);
 
         }
         else
@@ -390,7 +242,7 @@ void getTeVs(const char satellite, uint8_t **hmDataBuffers, long hmTimeIndex, do
     return;
 }
 
-int iterateEquations(double *niIO, double nil1b, double *vionsIO, double *mieffIO, uint32_t *viFlagIO, uint32_t *mieffFlagIO, double *fpAreaIO, double *rProbeIO, double te, double vs, double faceplateVoltage, faceplateParams fpParams, probeParams sphericalProbeParams, double ifp, double di, double vionsram, double mieffmodel, double qdlat, bool postProcessing)
+int iterateEquations(double *niIO, double nil1b, double *vionsIO, double *mieffIO, uint32_t *viFlagIO, uint32_t *mieffFlagIO, uint32_t *niFlagIO, double *fpAreaIO, double *rProbeIO, double te, double vs, double faceplateVoltage, faceplateParams fpParams, probeParams sphericalProbeParams, double ifp, double di, double vionsram, double mieffmodel, double qdlat, bool postProcessing)
 {
     int iterations = 0;
     double ni = *niIO;
@@ -510,4 +362,226 @@ int iterateEquations(double *niIO, double nil1b, double *vionsIO, double *mieffI
     *rProbeIO = rProbe;
 
     return iterations;
+}
+
+void updateFlags(int iterations, double *mieffIO, double *mieffErrorIO, double *viIO, double *viErrorIO, double *niIO, double *niErrorIO, double *fpAreaIO, double *rProbeIO, double te, double vs, uint32_t teSource, uint32_t vsSource, double vionsram, double dipLat, double *vn, double *ve, double *vc, uint32_t *mieffFlagIO, uint32_t *viFlagIO, uint32_t *niFlagIO, long *slidemEstimatesIO, uint8_t **hmDataBuffers, long hmTimeIndex)
+{
+    uint32_t mieffFlag = 0;
+    uint32_t viFlag = 0;
+    uint32_t niFlag = 0;
+    double mieff = 0;
+    double mieffError = 0;
+    double alongtrackiondrift = 0;
+    double vionsError = 0;
+    double ni = 0;
+    double niError = 0;
+    double fpArea = 0;
+    double rProbe = 0;
+    long slidemEstimates = 0;
+
+    if (mieffFlagIO != NULL)
+        mieffFlag = *mieffFlagIO;
+    if (viFlagIO != NULL)
+        viFlag = *viFlagIO;
+    if (niFlagIO != NULL)
+        niFlag = *niFlagIO;
+    if (mieffIO != NULL)
+        mieff = *mieffIO;
+    if (mieffErrorIO != NULL)
+        mieffError = *mieffErrorIO;
+    if (viIO != NULL)
+        alongtrackiondrift = *viIO;
+    if (viErrorIO != NULL)
+        vionsError = *viErrorIO;
+    if (niIO != NULL)
+        ni = *niIO;
+    if (niErrorIO != NULL)
+        niError = *niErrorIO;
+    if (fpAreaIO != NULL)
+        fpArea = *fpAreaIO;
+    if (rProbeIO != NULL)
+        rProbe = *rProbeIO;
+    if (slidemEstimatesIO != NULL)
+        slidemEstimates = *slidemEstimatesIO;
+
+    if (iterations >= SLIDEM_MAX_ITERATIONS)
+    {
+        mieffFlag |= SLIDEM_FLAG_ESTIMATE_DID_NOT_CONVERGE;
+        viFlag |= SLIDEM_FLAG_ESTIMATE_DID_NOT_CONVERGE;
+        niFlag |= SLIDEM_FLAG_ESTIMATE_DID_NOT_CONVERGE;
+    }
+    else
+    {
+        slidemEstimates++;
+    }
+
+    // Replace nans for CDF export
+    if (isfinite(mieff))
+    {
+        if (mieff > FLAGS_MAXIMUM_MIEFF)
+            mieffFlag |= SLIDEM_FLAG_ESTIMATE_TOO_LARGE;
+        else if (mieff < FLAGS_MINIMUM_MIEFF)
+            mieffFlag |= SLIDEM_FLAG_ESTIMATE_TOO_SMALL;
+    }
+    else
+    {
+        mieff = MISSING_MIEFF_VALUE;
+        mieffFlag |= SLIDEM_FLAG_PRODUCT_ESTIMATE_NOT_FINITE;
+    }
+    if (!isfinite(mieffError))
+    {
+        mieffError = MISSING_ERROR_ESTIMATE_VALUE;
+        mieffFlag |= SLIDEM_FLAG_UNCERTAINTY_ESTIMATE_NOT_FINITE;
+    }
+    if (isfinite(alongtrackiondrift))
+    {
+        if (fabs(alongtrackiondrift) > FLAGS_MAXIMUM_DRIFT_MAGNITUDE)
+            viFlag |= SLIDEM_FLAG_ESTIMATE_TOO_LARGE;
+    }
+    else
+    {
+        alongtrackiondrift = MISSING_VI_VALUE;
+        viFlag |= SLIDEM_FLAG_PRODUCT_ESTIMATE_NOT_FINITE;
+    }
+    if (!isfinite(vionsError))
+    {
+        vionsError = MISSING_ERROR_ESTIMATE_VALUE;
+        viFlag |= SLIDEM_FLAG_UNCERTAINTY_ESTIMATE_NOT_FINITE;
+    }
+    if (isfinite(ni))
+    {
+        if (ni > FLAGS_MAXIMUM_NI)
+            niFlag |= SLIDEM_FLAG_ESTIMATE_TOO_LARGE;
+        else if (niFlag < FLAGS_MINIMUM_NI)
+            niFlag |= SLIDEM_FLAG_ESTIMATE_TOO_SMALL;
+    }
+    else
+    {
+        ni = MISSING_NI_VALUE * 1e6;
+        niFlag |= SLIDEM_FLAG_PRODUCT_ESTIMATE_NOT_FINITE;
+    }
+    if (!isfinite(niError))
+    {
+        niError = MISSING_ERROR_ESTIMATE_VALUE;
+        niFlag |= SLIDEM_FLAG_UNCERTAINTY_ESTIMATE_NOT_FINITE;
+    }
+    if (isfinite(fpArea))
+    {
+        if (fpArea > FLAGS_MAXIMUM_FACEPLATE_AREA || fpArea < FLAGS_MINIMUM_FACEPLATE_AREA)
+        {
+            mieffFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
+            viFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
+            niFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
+        }
+    }
+    else
+    {
+        fpArea = MISSING_FPAREA_VALUE;
+        mieffFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
+        mieffFlag |= SLIDEM_FLAG_FACEPLATE_AREA_ESTIMATE_NOT_FINITE;
+        viFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
+        viFlag |= SLIDEM_FLAG_FACEPLATE_AREA_ESTIMATE_NOT_FINITE;
+        niFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
+        niFlag |= SLIDEM_FLAG_FACEPLATE_AREA_ESTIMATE_NOT_FINITE;
+    }
+    if (isfinite(rProbe))
+    {
+        if (rProbe > FLAGS_MAXIMUM_PROBE_RADIUS || rProbe < FLAGS_MINIMUM_PROBE_RADIUS)
+        {
+            mieffFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
+            viFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
+            niFlag |= SLIDEM_FLAG_OML_FACEPLATE_AREA_CORRECTION_INVALID;
+        }
+    }
+    else
+    {
+        rProbe = MISSING_RPROBE_VALUE;
+        mieffFlag |= SLIDEM_FLAG_OML_PROBE_RADIUS_CORRECTION_INVALID;
+        mieffFlag |= SLIDEM_FLAG_PROBE_RADIUS_ESTIMATE_NOT_FINITE;
+        viFlag |= SLIDEM_FLAG_OML_PROBE_RADIUS_CORRECTION_INVALID;
+        viFlag |= SLIDEM_FLAG_PROBE_RADIUS_ESTIMATE_NOT_FINITE;
+        niFlag |= SLIDEM_FLAG_OML_PROBE_RADIUS_CORRECTION_INVALID;
+        niFlag |= SLIDEM_FLAG_PROBE_RADIUS_ESTIMATE_NOT_FINITE;
+    }
+
+    // LP validity checks
+    // Potential difference between spherical probes too large? 
+    if (fabs(VSHGN() - VSLGN()) > FLAGS_MAXIMUM_PROBE_POTENTIAL_DIFFERENCE)
+    {
+        mieffFlag |= SLIDEM_FLAG_LP_PROBE_POTENTIAL_DIFFERENCE_TOO_LARGE;
+        viFlag |= SLIDEM_FLAG_LP_PROBE_POTENTIAL_DIFFERENCE_TOO_LARGE;
+        niFlag |= SLIDEM_FLAG_LP_PROBE_POTENTIAL_DIFFERENCE_TOO_LARGE;
+    }
+    // Spacecraft potential too negative?
+    if (vs < FLAGS_MINIMUM_LP_SPACECRAFT_POTENTIAL)
+    {
+        mieffFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_NEGATIVE;
+        mieffFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
+        viFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_NEGATIVE;
+        viFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
+        niFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_NEGATIVE;
+        niFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
+    }
+    else if (vs > FLAGS_MAXIMUM_LP_SPACECRAFT_POTENTIAL)
+    {
+        mieffFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_POSITIVE;
+        mieffFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
+        viFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_POSITIVE;
+        viFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
+        niFlag |= SLIDEM_FLAG_SPACECRAFT_POTENTIAL_TOO_POSITIVE;
+        niFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
+    }
+    // LP Probe issues?
+    if (te < FLAGS_MINIMUM_LP_TE || te > FLAGS_MAXIMUM_LP_TE || ni < FLAGS_MINIMUM_NI || ni > FLAGS_MAXIMUM_NI || teSource == LP_NO_PROBE || vsSource == LP_NO_PROBE)
+    {
+        mieffFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
+        viFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
+        niFlag |= SLIDEM_FLAG_LP_INPUTS_INVALID;
+    }
+    // Satellite velocity data available?
+    if (!isfinite(vionsram))
+    {
+        // overwrite VNEC and raise flags
+        vn[hmTimeIndex] = MISSING_VNEC_VALUE;
+        ve[hmTimeIndex] = MISSING_VNEC_VALUE;
+        vc[hmTimeIndex] = MISSING_VNEC_VALUE;
+        mieffFlag |= SLIDEM_FLAG_NO_SATELLITE_VELOCITY;
+        viFlag |= SLIDEM_FLAG_NO_SATELLITE_VELOCITY;
+        niFlag |= SLIDEM_FLAG_NO_SATELLITE_VELOCITY;
+    }
+    // DIP Latitude missing? Has to be due to a problem with input MAG data
+    if (dipLat == MISSING_DIPLAT_VALUE)
+    {
+        mieffFlag |= SLIDEM_FLAG_MAG_INPUT_INVALID;
+        viFlag |= SLIDEM_FLAG_MAG_INPUT_INVALID;
+        niFlag |= SLIDEM_FLAG_MAG_INPUT_INVALID;
+    }
+
+    if (mieffFlagIO != NULL)
+        *mieffFlagIO = mieffFlag;
+    if (viFlagIO != NULL)
+        *viFlagIO = viFlag;
+    if (niFlagIO != NULL)
+        *niFlagIO = niFlag;
+    if (mieffIO != NULL)
+        *mieffIO = mieff;
+    if (mieffErrorIO != NULL)
+        *mieffErrorIO = mieffError;
+    if (viIO != NULL)
+        *viIO = alongtrackiondrift;
+    if (viErrorIO != NULL)
+        *viErrorIO = vionsError;
+    if (niIO != NULL)
+        *niIO = ni;
+    if (niErrorIO != NULL)
+        *niErrorIO = niError;
+    if (fpAreaIO != NULL)
+        *fpAreaIO = fpArea;
+    if (rProbeIO != NULL)
+        *rProbeIO = rProbe;
+    if (slidemEstimatesIO != NULL)
+        *slidemEstimatesIO = slidemEstimates;
+
+    return;
+
 }
