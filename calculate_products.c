@@ -452,7 +452,7 @@ void updateFlags(int iterations, double *mieffIO, double *mieffErrorIO, double *
     {
         if (ni > FLAGS_MAXIMUM_NI)
             niFlag |= SLIDEM_FLAG_ESTIMATE_TOO_LARGE;
-        else if (niFlag < FLAGS_MINIMUM_NI)
+        else if (ni < FLAGS_MINIMUM_NI)
             niFlag |= SLIDEM_FLAG_ESTIMATE_TOO_SMALL;
     }
     else
