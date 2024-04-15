@@ -2,7 +2,7 @@
 
     SLIDEM Processor: main.c
 
-    Copyright (C) 2023 Johnathan K Burchill
+    Copyright (C) 2024 Johnathan K Burchill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,11 +30,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <stdbool.h>
-#include <math.h>
 #include <time.h>
-#include <ctype.h>
 #include <unistd.h>
 
 #include "load_inputs.h"
@@ -73,7 +70,7 @@ int main(int argc, char* argv[])
         if (strcmp(argv[i], "--about") == 0)
         {
             fprintf(stdout, "SLIDEM Swarm Langmuir Probe Ion Drift, Density and Effective Mass processor, version %s.\n", SOFTWARE_VERSION);
-            fprintf(stdout, "Copyright (C) 2023 Johnathan K Burchill\n");
+            fprintf(stdout, "Copyright (C) 2024 Johnathan K Burchill\n");
             fprintf(stdout, "This program comes with ABSOLUTELY NO WARRANTY.\n");
             fprintf(stdout, "This is free software, and you are welcome to redistribute it\n");
             fprintf(stdout, "under the terms of the GNU General Public License.\n");
@@ -192,9 +189,8 @@ int main(int argc, char* argv[])
     }
 
     // config file for faceplate and spherical probe modified OML parameters
-    faceplateParams fpParams;
     probeParams sphericalProbeParams;
-    if (loadModifiedOMLParams(&fpParams, &sphericalProbeParams))
+    if (loadModifiedOMLParams(&sphericalProbeParams))
     {
         fprintf(stdout, "%sError loading Modified OML parameters. Exiting.\n", infoHeader);
         exit(1);
@@ -226,8 +222,7 @@ int main(int argc, char* argv[])
         else
             fprintf(stdout, "%s  Satellite potential source: EXTD best probe\n, infoHeader", infoHeader);
         fprintf(stdout, "%s  Parameters:\n", infoHeader);
-        fprintf(stdout, "%s   Faceplate: areaModifier=%f alpha=%f beta=%f gamma=%f\n", infoHeader, fpParams.areaModifier, fpParams.alpha, fpParams.beta, fpParams.gamma);
-        fprintf(stdout, "%s   Spherical probe: radiusModifier=%f alpha=%f beta=%f gamma=%f zeta=%f eta=%f\n", infoHeader, sphericalProbeParams.radiusModifier, sphericalProbeParams.alpha, sphericalProbeParams.beta, sphericalProbeParams.gamma, sphericalProbeParams.zeta, sphericalProbeParams.eta);
+        fprintf(stdout, "%s   Spherical probe: radiusModifier=%f alpha=%f bravo=%f charlie=%f\n", infoHeader, sphericalProbeParams.radiusModifier, sphericalProbeParams.alpha, sphericalProbeParams.bravo, sphericalProbeParams.charlie);
     }
 
     CDFstatus status;
@@ -411,12 +406,12 @@ int main(int argc, char* argv[])
     uint16_t *iterationCount = malloc((size_t) (nHmRecs * sizeof(uint16_t)));
     long numberOfSlidemEstimates = 0;
 
-    calculateProducts(satellite, hmDataBuffers, fpCurrent, vn, ve, vc, dipLatitude, fpVoltage, f107Adj, yday, ionEffectiveMass, ionDensity, ionDriftRaw, ionDrift, ionEffectiveMassError, ionDensityError, ionDriftError, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, electronTemperatureSource, spacecraftPotentialSource, ionEffectiveMassTTS, mieffFlags, viFlags, niFlags, iterationCount, nHmRecs, fpParams, sphericalProbeParams, &numberOfSlidemEstimates);
+    calculateProducts(satellite, hmDataBuffers, fpCurrent, vn, ve, vc, dipLatitude, fpVoltage, f107Adj, yday, ionEffectiveMass, ionDensity, ionDriftRaw, ionDrift, ionEffectiveMassError, ionDensityError, ionDriftError, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, electronTemperatureSource, spacecraftPotentialSource, ionEffectiveMassTTS, mieffFlags, viFlags, niFlags, iterationCount, nHmRecs, sphericalProbeParams, &numberOfSlidemEstimates);
     fprintf(stdout, "%sCalculated %ld SLIDEM IDM products.\n", infoHeader, numberOfSlidemEstimates);
 
     if (POST_PROCESS_ION_DRIFT)
     {
-        postProcessIonDrift(slidemFullFilename, satellite, hmDataBuffers, vn, ve, vc, dipLatitude, fpCurrent, fpVoltage, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, electronTemperatureSource, spacecraftPotentialSource, ionEffectiveMassTTS, ionDrift, ionDriftError, ionEffectiveMass, ionEffectiveMassError, ionDensity, ionDensityError, viFlags, mieffFlags, niFlags, iterationCount, fpParams, sphericalProbeParams, nHmRecs);
+        postProcessIonDrift(slidemFullFilename, satellite, hmDataBuffers, vn, ve, vc, dipLatitude, fpCurrent, fpVoltage, fpAreaOML, rProbeOML, electronTemperature, spacecraftPotential, electronTemperatureSource, spacecraftPotentialSource, ionEffectiveMassTTS, ionDrift, ionDriftError, ionEffectiveMass, ionEffectiveMassError, ionDensity, ionDensityError, viFlags, mieffFlags, niFlags, iterationCount, sphericalProbeParams, nHmRecs);
     }
 
     // Write CDF file

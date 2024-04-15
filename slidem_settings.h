@@ -21,12 +21,12 @@
 #ifndef _SLIDEM_SETTING_H
 #define _SLIDEM_SETTING_H
 
-#define SOFTWARE_VERSION_STRING "SLIDEM version 2023-03-23"
-#define SOFTWARE_VERSION "02.04"
+#define SOFTWARE_VERSION_STRING "SLIDEM version 2024-04-08"
+#define SOFTWARE_VERSION "03.00"
 #define SLIDEM_PRODUCT_CODE "IDM"
 #define SLIDEM_PRODUCT_TYPE "PREL"
 #define SLIDEM_FILE_TYPE "EFIAIDM_2_"
-#define EXPORT_VERSION_STRING "0201"
+#define EXPORT_VERSION_STRING "0301"
 
 #define SLIDEM_BASE_FILENAME_LENGTH 55
 #define FP_FILENAME_LENGTH 59
@@ -38,7 +38,7 @@
 
 #define MIEFF_FROM_TBT2015_MODEL true // get estimated ion effective mass from TBT 2015 model? false implies 16 amu.
 #define MODIFIED_OML_GEOMETRIES true // use Lira-Resendiz et al. modified faceplate area and Langmuir probe radius
-#define MODIFIED_OML_FACEPLATE_CORRECTION true
+#define MODIFIED_OML_FACEPLATE_CORRECTION false
 #define MODIFIED_OML_SPHERICAL_PROBE_CORRECTION true
 
 #define POST_PROCESS_ION_DRIFT true // remove high-latitude linear drift vs time model from ion drift

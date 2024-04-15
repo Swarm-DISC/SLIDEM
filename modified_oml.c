@@ -2,7 +2,7 @@
 
     SLIDEM Processor: modified_oml.c
 
-    Copyright (C) 2022  Johnathan K Burchill
+    Copyright (C) 2024  Johnathan K Burchill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,41 +36,21 @@
 
 extern char infoHeader[50];
 
-double faceplateArea(double ni, double te, double phisc0, double mieff, double vionram, double faceplateVoltage, faceplateParams params)
-{
-    double areaModifier = params.areaModifier;
-    double alpha = params.alpha;
-    double beta = params.beta;
-    double gamma = params.gamma;
-    double m = mieff*SLIDEM_MAMU;
-    double perimeter = 2.0*(SLIDEM_WFP + SLIDEM_HFP);
-    double ageo = SLIDEM_WFP * SLIDEM_HFP;
-    double lambdad = debyeLength(ni, te);
-
-    double phisc = faceplateVoltage + phisc0; // Processing assumes faceplate potential is -3.5 V
-
-    double delta = alpha * perimeter * lambdad / ageo * (1.0 - SLIDEM_QE * phisc / (0.5 * m * vionram*vionram) - beta * SLIDEM_QE * phisc / (SLIDEM_K * te) - gamma /(SLIDEM_QE * phisc) * SLIDEM_QE * SLIDEM_QE / (4. * M_PI * SLIDEM_EPS * lambdad));
-
-    return (ageo * (1.0 + delta)) * (1.0 + areaModifier);
-
-}
-
-double probeRadius(double ni, double te, double phisc0, double mieff, double vionram, probeParams params)
+double probeRadius(double ni, double te, double phisc0, double mieff, double vionram, probeParams params, const char satellite)
 {
     double radiusModifier = params.radiusModifier;
-    double alpha = params.alpha;
-    double beta = params.beta;
-    double gamma = params.gamma;
-    double zeta = params.zeta;
-    double eta = params.eta;
     double m = mieff*SLIDEM_MAMU;
     double lambdad = debyeLength(ni, te);
 
     double phisc = phisc0;
 
-    double delta = alpha * lambdad / SLIDEM_RP * (1.0 - beta * SLIDEM_QE * phisc / (0.5 * m * vionram*vionram) - gamma * SLIDEM_QE * phisc / (SLIDEM_K * te)) - zeta * phisc + eta;
+    double a1 = params.alpha;
+    if (satellite == 'B')
+        a1 = params.bravo;
+    else if (satellite == 'C')
+        a1 = params.charlie;
 
-    return (SLIDEM_RP * sqrt(1.0 - delta))*(1.0 + radiusModifier);
+    return (SLIDEM_RP * sqrt(1.0 + a1))*(1.0 + radiusModifier);
 }
 
 double debyeLength(double ni, double te)
@@ -85,7 +65,7 @@ double debyeLength(double ni, double te)
     return length;
 }
 
-int loadModifiedOMLParams(faceplateParams * fpParams, probeParams * sphericalProbeParams)
+int loadModifiedOMLParams(probeParams * sphericalProbeParams)
 {
     char *home = getenv("HOME");
     char configFile[255];
@@ -96,13 +76,7 @@ int loadModifiedOMLParams(faceplateParams * fpParams, probeParams * sphericalPro
         fprintf(stdout, "Error opening modified OML parameter file. Exiting.\n");
         return MODIFIED_OML_ERROR_CONFIG_FILE;
     }
-    if (fscanf(configFP, "%lf %lf %lf %lf", &fpParams->areaModifier, &fpParams->alpha, &fpParams->beta, &fpParams->gamma) != 4)
-    {
-        fprintf(stdout, "Error reading faceplate OML parameters.\n");
-        fclose(configFP);
-        return MODIFIED_OML_ERROR_CONFIG_FILE_FACEPLATE_PARAMS;
-    }
-    if (fscanf(configFP, "%lf %lf %lf %lf %lf %lf", &sphericalProbeParams->radiusModifier, &sphericalProbeParams->alpha, &sphericalProbeParams->beta, &sphericalProbeParams->gamma, &sphericalProbeParams->zeta, &sphericalProbeParams->eta) != 6)
+    if (fscanf(configFP, "%lf %lf %lf %lf", &sphericalProbeParams->radiusModifier, &sphericalProbeParams->alpha, &sphericalProbeParams->bravo, &sphericalProbeParams->charlie) != 4)
     {
         fprintf(stdout, "Error reading spherical probe OML parameters.\n");
         fclose(configFP);

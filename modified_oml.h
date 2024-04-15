@@ -2,7 +2,7 @@
 
     SLIDEM Processor: modified_oml.h
 
-    Copyright (C) 2022  Johnathan K Burchill
+    Copyright (C) 2024  Johnathan K Burchill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,23 +22,13 @@
 #define _MODIFIED_OML
 
 typedef struct {
-    double areaModifier;
-    double alpha;
-    double beta;
-    double gamma;
-} faceplateParams;
-
-typedef struct {
     double radiusModifier;
     double alpha;
-    double beta;
-    double gamma;
-    double zeta;
-    double eta;
+    double bravo;
+    double charlie;
 } probeParams;
 
-double faceplateArea(double ni, double te, double phiSc, double mieff, double vionram, double faceplateVoltage, faceplateParams params);
-double probeRadius(double ni, double te, double phiSc, double mieff, double vionram, probeParams params);
+double probeRadius(double ni, double te, double phiSc, double mieff, double vionram, probeParams params, const char satellite);
 double debyeLength(double ni, double te);
 
 enum MODIFIED_OML_ERRORS {
@@ -48,7 +38,7 @@ enum MODIFIED_OML_ERRORS {
     MODIFIED_OML_ERROR_CONFIG_FILE_SPHERICAL_PROBE_PARAMS = -3
 };
 
-int loadModifiedOMLParams(faceplateParams * fpParams, probeParams * sphericalProbeParams);
+int loadModifiedOMLParams(probeParams * sphericalProbeParams);
 
 
 #endif // _MODIFIED_OML

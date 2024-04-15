@@ -2,7 +2,7 @@
 
     SLIDEM Processor: calculate_products.h
 
-    Copyright (C) 2023 Johnathan K Burchill
+    Copyright (C) 2024 Johnathan K Burchill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,11 +26,11 @@
 
 #include "modified_oml.h"
 
-void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fpCurrent, double *vn, double *ve, double *vc, double *dipLatitude, double *faceplateVoltage, double f107Adj, int dayOfYear, double *ionEffectiveMass, double *ionDensity, double *ionDriftRaw, double *ionDrift, double *IonEffectiveMassError, double *ionDensityError, double *ionDriftError, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, uint32_t *electronTemperatureSource, uint32_t *spacecraftPotentialSource, double *ionEffectiveMassTTS, uint32_t *mieffFlags, uint32_t *viFlags, uint32_t *niFlags, uint16_t *iterationCount, long nHmRecs, faceplateParams fpParams, probeParams sphericalProbeParams, long *numberOfSlidemEstimates);
+void calculateProducts(const char satellite, uint8_t **hmDataBuffers, double *fpCurrent, double *vn, double *ve, double *vc, double *dipLatitude, double *faceplateVoltage, double f107Adj, int dayOfYear, double *ionEffectiveMass, double *ionDensity, double *ionDriftRaw, double *ionDrift, double *IonEffectiveMassError, double *ionDensityError, double *ionDriftError, double *fpAreaOML, double *rProbeOML, double *electronTemperature, double *spacecraftPotential, uint32_t *electronTemperatureSource, uint32_t *spacecraftPotentialSource, double *ionEffectiveMassTTS, uint32_t *mieffFlags, uint32_t *viFlags, uint32_t *niFlags, uint16_t *iterationCount, long nHmRecs, probeParams sphericalProbeParams, long *numberOfSlidemEstimates);
 
 void getTeVs(const char satellite, uint8_t **hmDataBuffers, long hmTimeIndex, double *te, uint32_t *teSource, double *vs, uint32_t *vsSource);
 
-int iterateEquations(double *niIO, double nil1b, double *vionsIO, double *mieffIO, uint32_t *viFlagIO, uint32_t *mieffFlagIO, uint32_t *niFlagIO, double *fpAreaIO, double *rProbeIO, double te, double vs, double faceplateVoltage, faceplateParams fpParams, probeParams sphericalProbeParams, double ifp, double di, double vionsram, double mieffmodel, double qdlat, bool postProcessing);
+int iterateEquations(double *niIO, double nil1b, double *vionsIO, double *mieffIO, uint32_t *viFlagIO, uint32_t *mieffFlagIO, uint32_t *niFlagIO, double *fpAreaIO, double *rProbeIO, double te, double vs, double faceplateVoltage, probeParams sphericalProbeParams, double ifp, double di, double vionsram, double mieffmodel, double qdlat, bool postProcessing, const char satellite);
 
 void updateFlags(int iterations, double *mieffIO, double *mieffErrorIO, double *viIO, double *viErrorIO, double *niIO, double *niErrorIO, double *fpAreaIO, double *rProbeIO, double te, double vs, uint32_t teSource, uint32_t vsSource, double vionsram, double dipLat, double *vn, double *ve, double *vc, uint32_t *mieffFlagIO, uint32_t *viFlagIO, uint32_t *niFlagIO, long *slidemEstimatesIO, uint8_t **hmDataBuffers, long hmTimeIndex);
 
