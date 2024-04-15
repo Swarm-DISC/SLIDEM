@@ -1,6 +1,6 @@
 # SLIDEM Processor: CMakeLists.txt
 
-# Copyright (C) 2023 Johnathan K Burchill
+# Copyright (C) 2024 Johnathan K Burchill
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,11 +44,11 @@ SET(LIBS ${LIBS} ${MATH} ${GSL_LIBRARY} ${LIBXM2_LIBRARIES})
 
 INCLUDE_DIRECTORIES(${INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${ZIP_INCLUDE_DIRS} ${HOME}/include ${LIBXML2_INCLUDE_DIR})
 
-ADD_EXECUTABLE(slidem main.c cdf_vars.c cdf_attrs.c load_inputs.c downsample.c interpolate.c modified_oml.c calculate_products.c export_products.c utilities.c post_process.c ioncomposition.c calion.c iri2016util.c f107.c load_satellite_velocity.c calculate_diplatitude.c write_header.c)
-TARGET_INCLUDE_DIRECTORIES(slidem PRIVATE ${HOME}/include)
-TARGET_LINK_LIBRARIES(slidem ${LIBS} -lgslcblas -lgsl -lcdf -lxml2)
+ADD_EXECUTABLE(slidem0301 main.c cdf_vars.c cdf_attrs.c load_inputs.c downsample.c interpolate.c modified_oml.c calculate_products.c export_products.c utilities.c post_process.c ioncomposition.c calion.c iri2016util.c f107.c load_satellite_velocity.c calculate_diplatitude.c write_header.c)
+TARGET_INCLUDE_DIRECTORIES(slidem0301 PRIVATE ${HOME}/include)
+TARGET_LINK_LIBRARIES(slidem0301 ${LIBS} -lgslcblas -lgsl -lcdf -lxml2)
 
-install(TARGETS slidem DESTINATION $ENV{HOME}/bin)
+install(TARGETS slidem0301 DESTINATION $ENV{HOME}/bin)
 
 # SLIDEM config file
 install(FILES slidem_modified_oml_configrc DESTINATION $ENV{HOME} RENAME .slidem_modified_oml_configrc)

@@ -2,7 +2,7 @@
 
     SLIDEM Processor: util/slidemParallel/main.c
 
-    Copyright (C) 2022  Johnathan K Burchill
+    Copyright (C) 2024  Johnathan K Burchill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -84,8 +84,8 @@ int main(int argc, char *argv[])
     {
         if (strcmp(argv[i], "--about") == 0)
         {
-            fprintf(stdout, "slidemParallel version %s.\n", SOFTWARE_VERSION);
-            fprintf(stdout, "Copyright (C) 2022  Johnathan K Burchill\n");
+            fprintf(stdout, "slidemParallel0301 version %s.\n", SOFTWARE_VERSION);
+            fprintf(stdout, "Copyright (C) 2024  Johnathan K Burchill\n");
             fprintf(stdout, "This program comes with ABSOLUTELY NO WARRANTY.\n");
             fprintf(stdout, "This is free software, and you are welcome to redistribute it\n");
             fprintf(stdout, "under the terms of the GNU General Public License.\n");
@@ -325,7 +325,7 @@ void *runThread(void *a)
 	// exec slidem command 
 	int status = 0;
 	char command[5*FILENAME_MAX+256];
-	sprintf(command, "slidem %s %s %s %s %s %s >> %s/%s%s.log 2>&1", args->satLetter, args->date, args->lpDir, args->modDir, args->magDir, args->exportDir, args->exportDir, args->satLetter, args->date);
+	sprintf(command, "slidem0301 %s %s %s %s %s %s >> %s/%s%s.log 2>&1", args->satLetter, args->date, args->lpDir, args->modDir, args->magDir, args->exportDir, args->exportDir, args->satLetter, args->date);
 	status = system(command);
 	if (WIFEXITED(status) && (WEXITSTATUS(status) == 0))
 	{

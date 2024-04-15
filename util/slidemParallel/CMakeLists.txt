@@ -1,6 +1,6 @@
 # SLIDEM Processor: util/slidemParallel/CMakeLists.txt
 
-# Copyright (C) 2022  Johnathan K Burchill
+# Copyright (C) 2024  Johnathan K Burchill
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 SET(THREADS_PREFER_PTHREAD_FLAG ON)
 FIND_PACKAGE(Threads REQUIRED)
 FIND_LIBRARY(CURSES ncurses)
-ADD_EXECUTABLE(slidemParallel main.c)
-TARGET_LINK_LIBRARIES(slidemParallel PRIVATE Threads::Threads ${CURSES})
+ADD_EXECUTABLE(slidemParallel0301 main.c)
+TARGET_LINK_LIBRARIES(slidemParallel0301 PRIVATE Threads::Threads ${CURSES})
 
-install(TARGETS slidemParallel DESTINATION $ENV{HOME}/bin)
+install(TARGETS slidemParallel0301 DESTINATION $ENV{HOME}/bin)
