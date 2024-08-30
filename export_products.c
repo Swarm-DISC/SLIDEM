@@ -128,7 +128,7 @@ CDFstatus exportSlidemCdf(const char *slidemFilename, const char satellite, cons
 
         addAttributes(exportCdfId, SOFTWARE_VERSION_STRING, satellite, exportVersion, minTime, maxTime, cdfFilename, fpFilename, hmFilename, modFilename, modFilenamePrevious, magFilename, nVnecRecsPrev);
 
-        fprintf(stdout, "%sExported %ld records to %s.cdf\n", infoHeader, nHmRecs, cdfFilename);
+        fprintf(stdout, "%sExported %ld records to %s\n", infoHeader, nHmRecs, cdfFilename);
         fflush(stdout);
         status = CDF_OK;
 

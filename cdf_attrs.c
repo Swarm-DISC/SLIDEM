@@ -244,7 +244,7 @@ void addAttributes(CDFid id, const char *softwareVersion, const char satellite, 
     addgEntry(id, attrNum, fileNo++, modFilename + strlen(modFilename) - MOD_FILENAME_LENGTH);
     addgEntry(id, attrNum, fileNo++, magFilename + strlen(magFilename) - MAG_FILENAME_LENGTH);
     addgEntry(id, attrNum, fileNo++, "apf107.dat");
-    addgEntry(id, attrNum, fileNo++, ".slidem_modified_oml_configrc");
+    addgEntry(id, attrNum, fileNo++, ".slidem_modified_oml_configrc_" EXPORT_VERSION_STRING);
 
     CDFcreateAttr(id, "PI_name", GLOBAL_SCOPE, &attrNum);
     addgEntry(id, attrNum, 0, "Johnathan Burchill");   
