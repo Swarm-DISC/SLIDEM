@@ -51,6 +51,6 @@ TARGET_LINK_LIBRARIES(slidem0201 ${LIBS} -lgslcblas -lgsl -lcdf -lxml2)
 install(TARGETS slidem0201 DESTINATION $ENV{HOME}/bin)
 
 # SLIDEM config file
-install(FILES slidem_modified_oml_configrc DESTINATION $ENV{HOME} RENAME .slidem_modified_oml_configrc)
+install(FILES slidem_modified_oml_configrc DESTINATION $ENV{HOME} RENAME .slidem_modified_oml_configrc_0201)
 
 add_subdirectory(util)

@@ -89,7 +89,7 @@ int loadModifiedOMLParams(faceplateParams * fpParams, probeParams * sphericalPro
 {
     char *home = getenv("HOME");
     char configFile[255];
-    sprintf(configFile, "%s/.slidem_modified_oml_configrc", home);
+    sprintf(configFile, "%s/.slidem_modified_oml_configrc_%s", home, EXPORT_VERSION_STRING);
     FILE *configFP = fopen(configFile, "r");
     if (configFP == NULL)
     {
