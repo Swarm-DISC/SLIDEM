@@ -325,7 +325,7 @@ void *runThread(void *a)
 	// exec slidem command 
 	int status = 0;
 	char command[5*FILENAME_MAX+256];
-	sprintf(command, "slidem %s %s %s %s %s %s >> %s/%s%s.log 2>&1", args->satLetter, args->date, args->lpDir, args->modDir, args->magDir, args->exportDir, args->exportDir, args->satLetter, args->date);
+	sprintf(command, "slidem0201 %s %s %s %s %s %s >> %s/%s%s.log 2>&1", args->satLetter, args->date, args->lpDir, args->modDir, args->magDir, args->exportDir, args->exportDir, args->satLetter, args->date);
 	status = system(command);
 	if (WIFEXITED(status) && (WEXITSTATUS(status) == 0))
 	{
